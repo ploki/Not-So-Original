@@ -1,0 +1,46 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+
+        ptr<HttpSession> session = request.getSession();
+        ptr<Process> process = session->getAttribute(request.getPathInfo()+"/process");
+
+        if ( ! process ) throw ServletException("No process defined in stack");
+
+
+        for ( Vector<ptr<op::Operator> >::iterator op = process->operators.end();
+                op != process->operators.begin();
+                /*nop*/) {
+                --op;
+                bool disabled=(*op)->getId() > process->upTo;
+                bool active = (*op)->getId() == process->upTo;
+                %><fieldset><legend>
+                        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="setUpTo"; with["operator"]=itostring((*op)->getId()); evalScripts=true;%>"
+                          ><img src="<%=request.getContextPath()%>/inc/styles/dark/eye<%=(disabled?"-inactive":"")%>.png"/></a>
+                        
+                        <% if ( op != process->operators.begin() ) {
+                
+                %><a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="delete_operator"; with["operator"]=itostring((*op)->getId()); evalScripts=true;%>"
+                    ><img src="<%=request.getContextPath()%>/inc/styles/dark/minus-inactive.png"/></a>
+                  
+                  <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="toggle_enabled"; with["operator"]=itostring((*op)->getId()); evalScripts=true;%>"
+                    ><img src="<%=request.getContextPath()%>/inc/styles/dark/ghost<%=(((*op)->isEnabled())?String("-inactive"):String("-active"))%>.png"/></a>
+                  <%
+                        }
+                %><%=(*op)->getName()%> (<%=(*op)->getId()%>)</legend>
+                <% if ( ! disabled ) { %>
+                <% request.setAttribute("active",active?new String("pasNULL"):NULL); %>
+                <% request.setAttribute("operator",(*op)); %>
+                <%:include page=(*op)->partialName();%>
+                <% } %>
+                </fieldset><%
+        }
+
+%>
+<input type="button" value="plop" onclick="alert($('preview').clientWidth); return false;"/>
+<script type="text/javascript">
+    // <![CDATA[
+	<%:refreshImage%>
+    // ]]>
+</script>

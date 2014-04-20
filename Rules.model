@@ -1,0 +1,3 @@
+CFILES:= common.C Image.C
+
+include Rules

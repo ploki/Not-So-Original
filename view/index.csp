@@ -1,0 +1,221 @@
+<%#
+#include <Gallery/common.H>
+%><%
+
+securityCheck(this,request,response);
+
+String pathInfoEncoded=request.getPathInfo();
+String pathInfo=url_decode(pathInfoEncoded);
+ImageDesc imgdsc(path_encode(pathInfo));
+ImageDesc slashdsc("/");
+
+if ( pathInfoEncoded.empty() ) {
+        response.sendRedirect(response.encodeRedirectURL(request.getContextPath()+"/gallery.C/"));
+}
+
+%><?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/2000/REC-xhtml1-20000126/DTD/xhtml1-strict.dtd">
+<html>
+  <%:head title=String("Photos : ") + ( ( imgdsc.alias.empty() ) ? ( pathInfo ) : ( imgdsc.alias ) );%>
+
+<body onload="checkForTheme()">
+<h1 class="title">Photos : <%= ( ( imgdsc.alias.empty() ) ? ( pathInfo ) : ( imgdsc.alias ) ) %></h1>
+<%
+ptr<String> flash=request.getSession()->getAttribute("flash");
+if ( flash ) {
+  %><div class="error"><%=*flash%></div><%
+  request.getSession()->setAttribute("flash",NULL);
+}
+%>
+<div class="navigation">
+ <a class="first" href="<%= request.getContextPath() %>/gallery.C/"><%= ( slashdsc.alias.empty()?String("Not So Original Gallery"):slashdsc.alias ) %></a><%
+
+if ( pathInfo != String("/") ) {
+  size_t pos=1;
+  String path=path_encode(pathInfo);
+  while ( ( (pos=path.find("/",pos) )) != String::npos )
+  {
+    String partial=path.substr(0,pos);
+    ImageDesc partialdsc(partial+String("/"));
+    pos++;
+    int last_slash=partial.rfind("/",partial.size());
+    String pathtail=partial.substr(last_slash+1,partial.size());
+  %>
+  &gt; <a href="<%= request.getContextPath()%>/gallery.C<%=partial%>/"><%= ( partialdsc.alias.empty() ? url_decode(pathtail) : partialdsc.alias )%></a>
+  <%
+  }
+  }
+  %></div>
+<%:includeSense filename=getInitParameter("IncludeTop");%>
+<% if  ( getCurrentUser(request) != "Anonyme" )  { %>
+<div class="comment">
+  <div id="admin_comment_block">
+  <div id="admin_showhideform"><strong>Gestion</strong> :	<span class="comment_toggle">
+	 [&nbsp;
+     <a href="javascript:admin_toggle_comment()"><span id="admin_showlink">afficher</span><span id="admin_hidelink" style="display:none;">Cacher</span></a>	&nbsp;]
+	   </span>
+	</div>
+
+	<div id="admin_comment_form" style="display: none;">
+
+
+  <%
+    String alias=pathInfo.substr(0,pathInfo.length()-1);
+    alias=alias.substr(alias.rfind("/")+1);
+    if ( alias.empty() ) alias="/";
+
+ptr<String> limit = request.getSession()->getAttribute("limit");
+  if ( isVDir(pathInfo) && (isAdmin(getCurrentUser(request)) || ( isVDirOwnedBy(pathInfo,getCurrentUser(request)) && getInitParameter("AllowUserVDir") == "true"  )) && !limit ) {
+%>
+   <form action="<%= request.getContextPath() %>/gallery.C<%=
+          path_encode(url_decode(request.getPathInfo()))
+          %>?action=remove_vdir" method="post" onSubmit="return confirm('Êtes-vous sûr ?');">
+          <fieldset><legend>Détruire cet album</legend>
+          <%:submit name="submit"; value="Détruire cet album";%>
+          </fieldset>
+    </form><%{
+          Map<String,String> fileList;
+          ptr<IndexCache> indexCache=request.getSession()->getAttribute("IndexCache");
+          if ( !indexCache ) {
+                  throw ServletException("IndexCache est vide");
+          }
+          ptr<IndexAttribute> dir=indexCache->getEntry(pathInfo);
+          for ( size_t i=0 ; i < dir->links.size() ; ++i) {
+                  fileList[dir->links[i].name]=dir->links[i].title;
+          }
+          if ( ! fileList.empty() ) {
+          %>
+    <form action="<%= request.getContextPath() %>/gallery.C<%=
+          path_encode(url_decode(request.getPathInfo()))
+          %>?action=remove_from_vdir" method="post" onSubmit="return confirm('Êtes-vous sûr ?');">
+          <fieldset><legend>Retirer une photo de cet album</legend>
+          <%:dropdown title="Choisissez la photo que vous souhaitez retirer de cet album.";
+                      desc="Quelle photo :";
+                      name="photo_id";
+                      defaultTo="X";
+                      options=fileList;%>
+          <%:submit name="submit"; value="Retirer";%>
+          </fieldset>
+    </form><% }}%>
+    <form action="<%= request.getContextPath() %>/gallery.C<%=
+          path_encode(request.getPathInfo())
+          %>?action=manage_vdir" method="post">
+          <fieldset><legend>Nouvel album</legend>
+          <%:textfield title="Donnez un nom à votre album"; desc="Nom :";
+                       name="vdir_name"; value="";%>
+          <%:submit name="submit"; value="Créer cet album";%>
+          </fieldset>
+    </form>
+    <% } %>
+<% if ( isAdmin(getCurrentUser(request)) ) { %>
+  <form action="<%= request.getContextPath() %>/gallery.C<%=
+          path_encode(request.getPathInfo())
+          %>?action=admin_dir" method="post">
+          <fieldset>
+          <legend>Décrire le répertoire</legend>
+     <%:textfield title="Entrez votre nom."; desc="Auteur:";
+                  name="commentname";
+                  value=( ( imgdsc.author.empty() ) ? ( getCurrentUser(request) ) : ( imgdsc.author ) );%>
+
+     <%:textfield title="Entrez le nom de cette série.";
+                  desc="Série :";
+                  name="commentphoto";
+                  value=( ( imgdsc.alias.empty() ) ? ( alias ) : ( imgdsc.alias ) );%>
+
+<% if ( request.getPathInfo() != "/" ) {
+%>     <%:dirdatedropdown title="Quelle est la date de prise de vue ?";
+                        desc="Date :";
+                        name="dirdate";
+                        root=getInitParameter("ROOT");%>
+<% } %>
+     <%:dirpermdropdown title="Quelle est la visibilité de ce répertoire ?";
+                        desc="Visibilité :";
+                        name="commentperms";%>
+     <%:textarea title="Allowed HTML tags: a,b,i,ul,li,blockquote,br.";
+                 desc="Description :";
+                 name="commentdata";
+                 value=imgdsc.description;%>
+
+     <%:submit  name="submit";
+                value="Envoyer";%>
+            </fieldset>
+	</form>
+	<form action="<%= request.getContextPath() %>/gallery.C<%=
+          path_encode(request.getPathInfo())
+          %>?action=genlaisserpasser" method="post">
+   <fieldset><legend>Laisser-passer</legend>
+   <%
+	String lp_id,lp_name,lp_path;
+	{
+	Connection conn;
+	ResultSet rs = conn.query("SELECT * FROM gallery_pass where path='"+conn.sqlize(path_encode(url_decode(request.getPathInfo())))+"'");
+	if ( rs.rowCount() != 0 ) {
+		rs.next();
+		lp_id=rs["id"];
+		lp_name=rs["name"];
+		lp_path=rs["path"];
+	}
+	}
+	if ( lp_id.empty() ) {
+    %>
+          <%:textfield title="Indiquez le titre du laisser-passer"; desc="Nom :";
+                       name="laisserpasser"; value="";%>
+          <%:submit name="submit"; value="Générer";%>
+   <%
+   }
+   else {
+   %>
+          <%:textfield title="Un laisser-passer existe déjà pour ce répertoire"; desc=lp_name;
+                       name="url"; value="http://"+request.getServerName()+request.getContextPath()+"/gallery.C?pass="+lp_id;%>
+<%
+   }
+   %>
+   </fieldset>
+    </form>
+    <fieldset><legend>Utilisateurs</legend>
+      <a class="plus" href="<%=request.getContextPath()%>/gallery.C<%=path_encode(request.getPathInfo())%>?action=admin">Utilisateurs</a>
+   </fieldset>
+ <% } %>
+    </div>
+</div>
+</div>
+<% }
+   else {%>
+   <div class="comment"><span><a href="<%=request.getContextPath()%>/gallery.C<%=path_encode(request.getPathInfo())%>?action=logmein">Voulez-vous vous identifier ?</a></span>
+<% } %>
+
+<%
+ptr<IndexCache>  indexCache= request.getSession()->getAttribute("IndexCache");
+if ( !indexCache) {
+        indexCache=new IndexCache();
+        request.getSession()->setAttribute("IndexCache",indexCache);
+}
+
+ptr<IndexAttribute> attr=indexCache->getEntry(pathInfo);
+if ( attr )
+{
+ response << attr->dirs.str();
+
+ if ( ! imgdsc.description.empty() ) { %>
+        <div class="user_comment"><div class="commententry">
+          <div class="name">Série de  <em><%= imgdsc.author %></em></div>
+          <div class="commentdata"><pre>
+<%= imgdsc.description %>
+</pre></div>
+        </div></div>
+<% } %><%:includeSense filename=getInitParameter("IncludeMiddle");%><%
+
+ response << "<p class=\"bigthumbnails\">";
+ response << attr->files.str();
+}
+else
+{
+ response << String("contenu vide");
+}
+%>
+</p>
+<%:footer sessionCount=getServletContext()->getSessionCount(); %>
+<%:includeSense filename=getInitParameter("IncludeBottom");%>
+</body>
+</html>

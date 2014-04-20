@@ -1,0 +1,177 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+ptr<op::Operator> op = request.getAttribute("operator");
+%>
+Document
+<hr/>
+Angle= <input type="text" name="angle" value="<%=op->mod("angle")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="angle";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+width = <input type="text" name="width" value="<%=op->mod("width")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="width";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<hr/>
+Saturation = <input type="text" name="saturation" value="<%=op->mod("saturation")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="saturation";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+Inverse map = <select name="inv_sat" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="inv_sat";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("inv_sat")=="0" ? "selected=\"selected\"":"" )%>>NON</option>
+      <option value="1" <%= (op->mod("inv_sat")=="1" ? "selected=\"selected\"":"" )%>>OUI</option>
+     
+    </select>
+<br/>
+Bias = <select name="bias_sat" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="bias_sat";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("bias_sat")=="0" ? "selected=\"selected\"":"" )%>>0</option>
+      <option value="1" <%= (op->mod("bias_sat")=="1" ? "selected=\"selected\"":"" )%>>1</option>
+     
+    </select>
+<hr/>
+Value = <select name="value" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+				update="stack";
+				with["operator"]=itostring(op->getId());
+				with["action"]="silent_mod";
+				with["name"]="value";
+				withTail="'&value='+this.value";
+				evalScripts=true;
+				%>"/>
+		<option value="1600" <%= (op->mod("value")=="1600"? "selected=\"selected\"":"" )%>>+4</option>
+
+		<option value="1424" <%= (op->mod("value")=="1424"? "selected=\"selected\"":"" )%>>+3 5/6</option>
+		<option value="1280" <%= (op->mod("value")=="1280"? "selected=\"selected\"":"" )%>>+3 2/3</option>
+		<option value="1128" <%= (op->mod("value")=="1128"? "selected=\"selected\"":"" )%>>+3 1/2</option>
+		<option value="1024" <%= (op->mod("value")=="1024"? "selected=\"selected\"":"" )%>>+3 1/3</option>
+		<option value="896" <%= (op->mod("value")=="896"? "selected=\"selected\"":"" )%>>+3 1/6</option>
+
+		<option value="800" <%= (op->mod("value")=="800"? "selected=\"selected\"":"" )%>>+3 </option>
+
+		<option value="712" <%= (op->mod("value")=="712"? "selected=\"selected\"":"" )%>>+2 5/6</option>
+		<option value="640" <%= (op->mod("value")=="640"? "selected=\"selected\"":"" )%>>+2 2/3</option>
+		<option value="564" <%= (op->mod("value")=="564"? "selected=\"selected\"":"" )%>>+2 1/2</option>
+		<option value="512" <%= (op->mod("value")=="512"? "selected=\"selected\"":"" )%>>+2 1/3</option>
+		<option value="448" <%= (op->mod("value")=="448"? "selected=\"selected\"":"" )%>>+2 1/6</option>
+
+		<option value="400" <%= (op->mod("value")=="400"? "selected=\"selected\"":"" )%>>+2 </option>
+
+		<option value="356" <%= (op->mod("value")=="356"? "selected=\"selected\"":"" )%>>+1 5/6</option>
+		<option value="320" <%= (op->mod("value")=="320"? "selected=\"selected\"":"" )%>>+1 2/3</option>
+		<option value="282" <%= (op->mod("value")=="282"? "selected=\"selected\"":"" )%>>+1 1/2</option>
+		<option value="256" <%= (op->mod("value")=="256"? "selected=\"selected\"":"" )%>>+1 1/3</option>
+		<option value="224" <%= (op->mod("value")=="224"? "selected=\"selected\"":"" )%>>+1 1/6</option>
+
+		<option value="200" <%= (op->mod("value")=="200"? "selected=\"selected\"":"" )%>>+1</option>
+
+		<option value="178" <%= (op->mod("value")=="178"? "selected=\"selected\"":"" )%>>+5/6</option>
+		<option value="160" <%= (op->mod("value")=="160"? "selected=\"selected\"":"" )%>>+2/3</option>
+		<option value="141" <%= (op->mod("value")=="141"? "selected=\"selected\"":"" )%>>+1/2</option>
+		<option value="128" <%= (op->mod("value")=="128"? "selected=\"selected\"":"" )%>>+1/3</option>
+		<option value="112" <%= (op->mod("value")=="112"? "selected=\"selected\"":"" )%>>+1/6</option>
+
+		<option value="100" <%= (op->mod("value")=="100"? "selected=\"selected\"":"" )%>>-0-</option>
+
+		<option value="89" <%= (op->mod("value")=="89"? "selected=\"selected\"":"" )%>>-1/6</option>
+		<option value="80" <%= (op->mod("value")=="80"? "selected=\"selected\"":"" )%>>-1/3</option>
+		<option value="71" <%= (op->mod("value")=="71"? "selected=\"selected\"":"" )%>>-1/2</option>
+		<option value="64" <%= (op->mod("value")=="64"? "selected=\"selected\"":"" )%>>-2/3</option>
+		<option value="56" <%= (op->mod("value")=="56"? "selected=\"selected\"":"" )%>>-5/6</option>
+
+		<option value="50" <%= (op->mod("value")=="50"? "selected=\"selected\"":"" )%>>-1</option>
+		<option value="40" <%= (op->mod("value")=="40"? "selected=\"selected\"":"" )%>>-1 1/3</option>
+		<option value="32" <%= (op->mod("value")=="32"? "selected=\"selected\"":"" )%>>-1 2/3</option>
+
+		<option value="25" <%= (op->mod("value")=="25"? "selected=\"selected\"":"" )%>>-2</option>
+		<option value="20" <%= (op->mod("value")=="20"? "selected=\"selected\"":"" )%>>-2 1/3</option>
+		<option value="16" <%= (op->mod("value")=="16"? "selected=\"selected\"":"" )%>>-2 2/3</option>
+
+		<option value="12.5" <%= (op->mod("value")=="12.5"? "selected=\"selected\"":"" )%>>-3</option>
+		<option value="10" <%= (op->mod("value")=="10"? "selected=\"selected\"":"" )%>>-3 1/3</option>
+		<option value="8" <%= (op->mod("value")=="8"? "selected=\"selected\"":"" )%>>-3 2/3</option>
+
+		<option value="6.25" <%= (op->mod("value")=="6.25"? "selected=\"selected\"":"" )%>>-4</option>
+	</select> IL
+<br/>
+Inverse map = <select name="inv_val" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="inv_val";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("inv_val")=="0" ? "selected=\"selected\"":"" )%>>NON</option>
+      <option value="1" <%= (op->mod("inv_val")=="1" ? "selected=\"selected\"":"" )%>>OUI</option>
+     
+    </select>
+<br/>
+Bias = <select name="bias_val" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="bias_val";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("bias_val")=="0" ? "selected=\"selected\"":"" )%>>0</option>
+      <option value="1" <%= (op->mod("bias_val")=="1" ? "selected=\"selected\"":"" )%>>1</option>
+     
+    </select>
+<hr/>
+Help = <select name="help" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="help";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("help")=="0" ? "selected=\"selected\"":"" )%>>NON</option>
+      <option value="16" <%= (op->mod("help")=="16" ? "selected=\"selected\"":"" )%>>100%</option>
+      <option value="15.99" <%= (op->mod("help")=="15.99" ? "selected=\"selected\"":"" )%>>99%</option>
+      <option value="15.9" <%= (op->mod("help")=="15.9" ? "selected=\"selected\"":"" )%>>93%</option>
+      <option value="15.77" <%= (op->mod("help")=="15.77" ? "selected=\"selected\"":"" )%>>85%</option>
+      <option value="15.667" <%= (op->mod("help")=="15.667" ? "selected=\"selected\"":"" )%>>79%</option>
+      <option value="15.5" <%= (op->mod("help")=="15.5" ? "selected=\"selected\"":"" )%>>71%</option>
+      <option value="15" <%= (op->mod("help")=="15" ? "selected=\"selected\"":"" )%>>50%</option>
+      <option value="14.5" <%= (op->mod("help")=="14.5" ? "selected=\"selected\"":"" )%>>35%</option>
+      <option value="14" <%= (op->mod("help")=="14" ? "selected=\"selected\"":"" )%>>25%</option>
+      <option value="13.5" <%= (op->mod("help")=="13.5" ? "selected=\"selected\"":"" )%>>18%</option>
+      <option value="13" <%= (op->mod("help")=="13" ? "selected=\"selected\"":"" )%>>12.5%</option>
+      <option value="12.5" <%= (op->mod("help")=="12.5" ? "selected=\"selected\"":"" )%>>9%</option>
+      <option value="12" <%= (op->mod("help")=="12" ? "selected=\"selected\"":"" )%>>6.25%</option>
+      <option value="11" <%= (op->mod("help")=="11" ? "selected=\"selected\"":"" )%>>3.125%</option>
+      <option value="10" <%= (op->mod("help")=="10" ? "selected=\"selected\"":"" )%>>1.563%</option>
+      
+    </select>
+

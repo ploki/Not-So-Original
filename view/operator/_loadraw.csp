@@ -1,0 +1,331 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+ptr<op::Operator> op = request.getAttribute("operator");
+%>
+Lecture de l'image brute de l'appareil photo
+<hr/>
+Size = <select name="halfsize" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="halfSize";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("halfSize")=="0" ? "selected=\"selected\"":"" )%>>Full, dcraw interpolation</option>
+      <option value="1" <%= (op->mod("halfSize")=="1" ? "selected=\"selected\"":"" )%>>Half</option>
+      <option value="2" <%= (op->mod("halfSize")=="2" ? "selected=\"selected\"":"" )%>>Full, RAW data</option>
+   <!--   <option value="3" <%= (op->mod("halfSize")=="3" ? "selected=\"selected\"":"" )%>>Full, internal interpolation</option> -->
+    </select>
+<br/>
+Quality = <select name="q" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="quality";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("quality")=="0" ? "selected=\"selected\"":"" )%>>LOW</option>
+      <option value="1" <%= (op->mod("quality")=="1" ? "selected=\"selected\"":"" )%>>VNG</option>
+      <option value="2" <%= (op->mod("quality")=="2" ? "selected=\"selected\"":"" )%>>PPG</option>
+      <option value="3" <%= (op->mod("quality")=="3" ? "selected=\"selected\"":"" )%>>AHD</option>
+    </select>
+<br/>
+Four colors = <select name="fourcolors" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="fourColors";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("fourColors")=="0" ? "selected=\"selected\"":"" )%>>NON</option>
+      <option value="1" <%= (op->mod("fourColors")=="1" ? "selected=\"selected\"":"" )%>>OUI</option>
+    </select>
+<hr/>
+Depth = <select name="16bit" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="16bit";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="1" <%= (op->mod("16bit")=="1" ? "selected=\"selected\"":"" )%>>16-bit linear</option>
+      <option value="2" <%= (op->mod("16bit")=="2" ? "selected=\"selected\"":"" )%>>16-bit IUT BT.709</option>
+      <option value="3" <%= (op->mod("16bit")=="3" ? "selected=\"selected\"":"" )%>>16-bit sRGB</option>
+      <option value="4" <%= (op->mod("16bit")=="4" ? "selected=\"selected\"":"" )%>>16-bit IUT BT.709 (auto WP)</option>
+      <option value="5" <%= (op->mod("16bit")=="5" ? "selected=\"selected\"":"" )%>>16-bit sRGB (auto WP)</option>
+      <option value="7" <%= (op->mod("16bit")=="7" ? "selected=\"selected\"":"" )%>>8-bit linear</option>
+      <option value="8" <%= (op->mod("16bit")=="8" ? "selected=\"selected\"":"" )%>>8-bit IUT BT.709</option>
+      <option value="9" <%= (op->mod("16bit")=="9" ? "selected=\"selected\"":"" )%>>8-bit sRGB</option>
+      <option value="0" <%= (op->mod("16bit")=="0" ? "selected=\"selected\"":"" )%>>8-bit IUT BT.709 (auto WP)</option>
+      <option value="6" <%= (op->mod("16bit")=="6" ? "selected=\"selected\"":"" )%>>8-bit sRGB (auto WP)</option>
+    </select>
+<br/>
+High Lights = <select name="highlights" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="highlights";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("highlights")=="0" ? "selected=\"selected\"":"" )%>>Clip</option>
+      <option value="1" <%= (op->mod("highlights")=="1" ? "selected=\"selected\"":"" )%>>Don't clip</option>
+      <option value="2" <%= (op->mod("highlights")=="2" ? "selected=\"selected\"":"" )%>>reconstruct 2</option>
+      <option value="3" <%= (op->mod("highlights")=="3" ? "selected=\"selected\"":"" )%>>reconstruct 3</option>
+      <option value="4" <%= (op->mod("highlights")=="4" ? "selected=\"selected\"":"" )%>>reconstruct 4</option>
+      <option value="5" <%= (op->mod("highlights")=="5" ? "selected=\"selected\"":"" )%>>reconstruct 5</option>
+      <option value="6" <%= (op->mod("highlights")=="6" ? "selected=\"selected\"":"" )%>>reconstruct 6</option>
+      <option value="7" <%= (op->mod("highlights")=="7" ? "selected=\"selected\"":"" )%>>reconstruct 7</option>
+      <option value="8" <%= (op->mod("highlights")=="8" ? "selected=\"selected\"":"" )%>>reconstruct 8</option>
+      <option value="9" <%= (op->mod("highlights")=="9" ? "selected=\"selected\"":"" )%>>reconstruct 9</option>
+    </select>
+<hr/>
+Remove hot pixels = <select name="hp_enabled" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="hp_enabled";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("hp_enabled")=="0" ? "selected=\"selected\"":"" )%>>NO</option>
+      <option value="1" <%= (op->mod("hp_enabled")=="1" ? "selected=\"selected\"":"" )%>>ALWAYS</option>
+      <option value="100" <%= (op->mod("hp_enabled")=="100" ? "selected=\"selected\"":"" )%>>100 ISO</option>
+      <option value="200" <%= (op->mod("hp_enabled")=="200" ? "selected=\"selected\"":"" )%>>200 ISO</option>
+      <option value="400" <%= (op->mod("hp_enabled")=="400" ? "selected=\"selected\"":"" )%>>400 ISO</option>
+      <option value="800" <%= (op->mod("hp_enabled")=="800" ? "selected=\"selected\"":"" )%>>800 ISO</option>
+      <option value="1600" <%= (op->mod("hp_enabled")=="1600" ? "selected=\"selected\"":"" )%>>1600 ISO</option>
+      <option value="3200" <%= (op->mod("hp_enabled")=="3200" ? "selected=\"selected\"":"" )%>>3200 ISO</option>
+      <option value="6400" <%= (op->mod("hp_enabled")=="6400" ? "selected=\"selected\"":"" )%>>6400 ISO</option>
+      <option value="12800" <%= (op->mod("hp_enabled")=="12800" ? "selected=\"selected\"":"" )%>>12800 ISO</option>
+      <option value="25600" <%= (op->mod("hp_enabled")=="25600" ? "selected=\"selected\"":"" )%>>25600 ISO</option>
+    </select>
+
+<br/>
+IL Delta = <input type="text" name="hp_delta" value="<%=op->mod("hp_delta")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="hp_delta";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+Aggressive = <select name="hp_aggressive" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="hp_aggressive";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("hp_aggressive")=="0" ? "selected=\"selected\"":"" )%>>NO</option>
+      <option value="1" <%= (op->mod("hp_aggressive")=="1" ? "selected=\"selected\"":"" )%>>ALWAYS</option>
+      <option value="100" <%= (op->mod("hp_aggressive")=="100" ? "selected=\"selected\"":"" )%>>100 ISO</option>
+      <option value="200" <%= (op->mod("hp_aggressive")=="200" ? "selected=\"selected\"":"" )%>>200 ISO</option>
+      <option value="400" <%= (op->mod("hp_aggressive")=="400" ? "selected=\"selected\"":"" )%>>400 ISO</option>
+      <option value="800" <%= (op->mod("hp_aggressive")=="800" ? "selected=\"selected\"":"" )%>>800 ISO</option>
+      <option value="1600" <%= (op->mod("hp_aggressive")=="1600" ? "selected=\"selected\"":"" )%>>1600 ISO</option>
+      <option value="3200" <%= (op->mod("hp_aggressive")=="3200" ? "selected=\"selected\"":"" )%>>3200 ISO</option>
+      <option value="6400" <%= (op->mod("hp_aggressive")=="6400" ? "selected=\"selected\"":"" )%>>6400 ISO</option>
+      <option value="12800" <%= (op->mod("hp_aggressive")=="12800" ? "selected=\"selected\"":"" )%>>12800 ISO</option>
+      <option value="25600" <%= (op->mod("hp_aggressive")=="25600" ? "selected=\"selected\"":"" )%>>25600 ISO</option>
+    </select>
+<br/>
+Naïve = <select name="hp_naive" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="hp_naive";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("hp_naive")=="0" ? "selected=\"selected\"":"" )%>>NON</option>
+      <option value="1" <%= (op->mod("hp_naive")=="1" ? "selected=\"selected\"":"" )%>>OUI</option>
+    </select>
+<hr/>
+Wavelets threshold (100..1000) = <input type="text" name="noise" value="<%=op->mod("noise")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="noise";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<hr/>
+Aberration chromatique<br/>
+Magnification rouge (typiquement 0.999) =
+        <input type="text" name="red_mag" value="<%=op->mod("red_mag")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="red_mag";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+Magnification bleue (typiquement 1.001) =
+        <input type="text" name="blue_mag" value="<%=op->mod("blue_mag")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="blue_mag";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<hr/>
+White Balance = <select name="whitebalance" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="whitebalance";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+<%
+
+	Connection conn;
+	ResultSet rs = conn.query("SELECT * FROM gallery_white_balance where dropped = 0");
+	while ( rs.next() ) {
+%>
+      <option value="<%=rs["id"]%>" <%= (op->mod("whitebalance")==rs["id"] ? "selected=\"selected\"":"" )%>><%=rs["desc"]%></option>
+<% } 
+	rs = conn.query("SELECT * FROM gallery_white_balance where dropped = 1");
+	while ( rs.next() ) {
+%>
+      <option value="<%=rs["id"]%>" <%= (op->mod("whitebalance")==rs["id"] ? "selected=\"selected\"":"" )%>><%=rs["desc"]%></option>
+<% } %>
+
+    </select>
+<br/>
+Temperature = <input type="text" name="redmul" value="<%=op->mod("temperature")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="temperature";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+Green = <input type="text" name="greenmul" value="<%=op->mod("tint")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="tint";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<hr/>
+Curve = <select name="discrete" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+				update="stack";
+				with["operator"]=itostring(op->getId());
+				with["action"]="silent_mod";
+				with["name"]="discrete";
+				withTail="'&value='+this.value";
+				evalScripts=true;
+				%>"/>
+		<option value="0" <%= (op->mod("discrete")=="0"? "selected=\"selected\"":"" )%>>continue</option>
+		<option value="1" <%= (op->mod("discrete")=="1"? "selected=\"selected\"":"" )%>>discrete 1IL</option>
+		<option value="2" <%= (op->mod("discrete")=="2"? "selected=\"selected\"":"" )%>>discrete 1/2IL</option>
+		<option value="3" <%= (op->mod("discrete")=="3"? "selected=\"selected\"":"" )%>>discrete 1/3IL</option>
+	</select>
+<hr/>
+rotate = <input type="text" name="rotate" value="<%=op->mod("rotate")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="rotate";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+zoom % = <input type="text" name="zoom" value="<%=op->mod("zoom")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="zoom";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<hr/>
+autocrop = <select name="autocrop" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+				update="stack";
+				with["operator"]=itostring(op->getId());
+				with["action"]="silent_mod";
+				with["name"]="autocrop";
+				withTail="'&value='+this.value";
+				evalScripts=true;
+				%>"/>
+		<option value="" <%= (op->mod("autocrop")==""? "selected=\"selected\"":"" )%>>userdef</option>
+		<option value="left/top" <%= (op->mod("autocrop")=="left/top"? "selected=\"selected\"":"" )%>>square @ left/top</option>
+		<option value="center" <%= (op->mod("autocrop")=="center"? "selected=\"selected\"":"" )%>>square @ center</option>
+		<option value="right/bottom" <%= (op->mod("autocrop")=="right/bottom"? "selected=\"selected\"":"" )%>>square @ right/bottom</option>
+
+		<option value="4/3-left/top" <%= (op->mod("autocrop")=="4/3-left/top"? "selected=\"selected\"":"" )%>>4/3 @ left/top</option>
+		<option value="4/3-center" <%= (op->mod("autocrop")=="4/3-center"? "selected=\"selected\"":"" )%>>4/3 @ center</option>
+		<option value="4/3-right/bottom" <%= (op->mod("autocrop")=="4/3-right/bottom"? "selected=\"selected\"":"" )%>>4/3 @ right/bottom</option>
+
+
+		<option value="reset" <%= (op->mod("autocrop")=="reset"? "selected=\"selected\"":"" )%>>reset</option>
+	</select>
+<br/>
+crop x1 = <input type="text" name="radius" value="<%=op->mod("crop_x1")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="crop_x1";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+crop y1 = <input type="text" name="radius" value="<%=op->mod("crop_y1")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="crop_y1";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+crop x2 = <input type="text" name="radius" value="<%=op->mod("crop_x2")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="crop_x2";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+crop y2 = <input type="text" name="radius" value="<%=op->mod("crop_y2")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="crop_y2";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<hr/>
+Brightness = <input type="text" name="brightness" value="<%=op->mod("brightness")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="brightness";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+Black Point = <input type="text" name="blackpoint" value="<%=op->mod("blackpoint")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="blackpoint";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>

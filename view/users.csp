@@ -1,0 +1,84 @@
+<%#
+#include <Gallery/common.H>
+%><%
+securityCheck(this,request,response);
+%><?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/2000/REC-xhtml1-20000126/DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+<!-- This makes IE6 suck less (a bit) -->
+<!--[if lt IE 7]>
+<script src="<%= request.getContextPath() %>/inc/styles/ie7/ie7-standard.js" type="text/javascript">
+</script>
+<![endif]-->
+   <title>Photo gallery User Admin</title>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15" />
+   <link rel="icon" href="<%= request.getContextPath() %>/stock_camera-16.png" type="image/png" />
+   <link rel="shortcut icon" href="<%= request.getContextPath() %>/favicon.ico" type="image/x-icon" />
+   <link type="text/css" rel="stylesheet" href="<%= request.getContextPath() %>/inc/styles/dark/dark.css" title="dark" media="screen" />
+   <link type="text/css" rel="prefertch alternate stylesheet" href="<%= request.getContextPath() %>/inc/styles/classic/classic.css" title="classic" media="screen" />
+   <link type="text/css" rel="prefertch alternate stylesheet" href="<%= request.getContextPath() %>/inc/styles/gorilla/gorilla.css" title="gorilla" media="screen" />
+   <script src="<%= request.getContextPath() %>/inc/global.js" type="text/javascript"></script>
+ </head>
+
+<body onload="checkForTheme()">
+
+<h1 class="title">Photo gallery UserAdmin</h1>
+
+<div class="navigation"><a href="#">Nouvel utilisateur</a></div>
+
+
+<div id="photoservicelogin" >
+        <form method="POST" action="<%= ( request.getRequestURL() ) %>">
+                <div class="row">
+                        <div class="label"><a title="Nom de l'utilisateur à créer." href="#">login :</a></div>
+                        <div class="control"><input type="text" name="newuser" value="" /><br /></div>
+                </div>
+                <div class="row">
+                        <div class="label"><a title="Mot de passe de l'utilisateur à créer." href="#">Mot de passe :</a></div>
+                        <div class="control"><input type="password" name="password" value="" /><br /></div>
+                </div>
+                <div class="row">
+	      <div class="label"><a title="Cet utilisateur est-il un administrateur ?" href="#">Administrateur :</a></div>
+	      <div class="control"><input type="checkbox" name="isadmin" />
+        </div>
+
+      </div>
+                <div class="row">
+                        <div class="label"></div>
+                        <div class="control"><input type="submit" name="submit" value="Entrer" /></div>
+
+                </div>
+        </form>
+</div>
+
+<div class="navigation"><a href="#">Les utilisateurs</a></div>
+
+<%
+Connection conn;
+ResultSet rs=conn.query("SELECT * FROM gallery_users");
+
+while ( rs.next() ) {
+        %>
+        <div class="comment"><span><a class="plus" href="<%= request.getContextPath()%>/gallery.C<%= ( path_encode(request.getPathInfo()) ) %>?action=admin&delete=<%=rs["id"]%>">Virer</a> <%=rs["name"]%><%= (rs["isadmin"]=="true"?" qui est un administrateur":"") %></span></div>
+        
+        
+        <%
+}
+
+%>
+
+
+
+<%
+        ptr<String> flash=request.getSession()->getAttribute("flash");
+        if ( flash && ! flash->empty() ) {
+                response << "<div class=\"error\">" << *flash << "</div>";
+        }
+        request.getSession()->setAttribute("flash",NULL);
+%>
+
+<%:footer sessionCount=getServletContext()->getSessionCount(); %>
+</body>
+</html>

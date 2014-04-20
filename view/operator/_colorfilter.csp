@@ -1,0 +1,35 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+ptr<op::Operator> op = request.getAttribute("operator");
+%>
+Apply a color filter
+<hr/>
+Red = <input type="text" name="redmul" value="<%=op->mod("redmul")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="redmul";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+Green = <input type="text" name="greenmul" value="<%=op->mod("greenmul")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="greenmul";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+Blue = <input type="text" name="bluemul" value="<%=op->mod("bluemul")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="bluemul";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>

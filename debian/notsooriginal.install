@@ -1,0 +1,8 @@
+/usr/include/Gallery/html.H
+/usr/include/Gallery/common.H
+/usr/include/Gallery/ImageEditor.H
+/usr/include/Gallery/Image.H
+/usr/include/Gallery/CIELab.H
+/usr/include/Gallery/Profile.H
+/usr/lib/libGallery_model.so
+/usr/lib/gallery/thumbnailer

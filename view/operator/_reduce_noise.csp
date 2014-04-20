@@ -1,0 +1,17 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+ptr<op::Operator> op = request.getAttribute("operator");
+%>
+Reduce noise in image using a noise peak elimination filter.
+<hr/>
+Order = <input type="text" name="order" value="<%=op->mod("order")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="order";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>

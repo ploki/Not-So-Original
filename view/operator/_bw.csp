@@ -1,0 +1,59 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+ptr<op::Operator> op = request.getAttribute("operator");
+%>
+L'image passe en noir et blanc<br/>
+<hr/>
+Simulation = <select name="value" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+				update="stack";
+				with["operator"]=itostring(op->getId());
+				with["action"]="silent_mod";
+				with["name"]="filter";
+				withTail="'&value='+this.value";
+				evalScripts=true;
+				%>"/>
+		<option value="0" <%= (op->mod("filter")=="0"?"selected=\"selected\"":"" )%>>sans</option>
+		<option value="33.333,33.333,33.333" <%= (op->mod("filter")=="33.333,33.333,33.333"? "selected=\"selected\"":"" )%>>Neutral</option>
+		<optgroup label="Filter">
+		<option value="100,0,0" <%= (op->mod("filter")=="100,0,0"? "selected=\"selected\"":"" )%> style="color: #f00">Red</option>
+		<option value="66.666,33.333,0" <%= (op->mod("filter")=="66.666,33.333,0"? "selected=\"selected\"":"" )%> style="color: #f70">######</option>
+		<option value="50,50,0" <%= (op->mod("filter")=="50,50,0"? "selected=\"selected\"":"" )%> style="color: #ff0">Yellow</option>
+		<option value="33.333,66.666,0" <%= (op->mod("filter")=="33.333,66.666,0"? "selected=\"selected\"":"" )%> style="color: #7f0">######</option>
+		<option value="0,100,0" <%= (op->mod("filter")=="0,100,0"? "selected=\"selected\"":"" )%> style="color: #0f0">Green</option>
+		<option value="0,66.666,33.333" <%= (op->mod("filter")=="0,66.666,33.333"? "selected=\"selected\"":"" )%> style="color: #0f7">######</option>
+		<option value="0,50,50" <%= (op->mod("filter")=="0,50,50"? "selected=\"selected\"":"" )%> style="color: #0ff">Cyan</option>
+		<option value="0,33.333,66.666" <%= (op->mod("filter")=="0,33.333,66.666"? "selected=\"selected\"":"" )%> style="color: #07f">######</option>
+ 		<option value="0,0,100" <%= (op->mod("filter")=="0,0,100"? "selected=\"selected\"":"" )%> style="color: #00f">Blue</option>
+		<option value="33.333,0,66.666" <%= (op->mod("filter")=="33.333,0,66.666"? "selected=\"selected\"":"" )%> style="color: #70f">######</option>
+		<option value="50,0,50" <%= (op->mod("filter")=="50,0,50"? "selected=\"selected\"":"" )%> style="color: #f0f">Magenta</option>
+		<option value="66.666,0,33.333" <%= (op->mod("filter")=="66.666,0,33.333"? "selected=\"selected\"":"" )%> style="color: #f07">######</option>
+		<option value="100,0,0" <%= (op->mod("filter")=="100,0,0"? "selected=\"selected\"":"" )%> style="color: #f00">Red</option>
+		<optgroup>
+
+		<optgroup label="Agfa">
+		<option value="18,41,41" <%= (op->mod("filter")=="18,41,41"? "selected=\"selected\"":"" )%>>Agfa 200X</option>
+		<option value="25,39,36" <%= (op->mod("filter")=="25,39,36"? "selected=\"selected\"":"" )%>>Agfapan 25</option>
+		<option value="21,40,39" <%= (op->mod("filter")=="21,40,39"? "selected=\"selected\"":"" )%>>Agfapan 100</option>
+		<option value="20,41,39" <%= (op->mod("filter")=="20,41,39"? "selected=\"selected\"":"" )%>>Agfapan 400</option>
+		</optgroup>
+
+		<optgroup label="Ilford">
+		<option value="21,42,37" <%= (op->mod("filter")=="21,42,37"? "selected=\"selected\"":"" )%>>Ilford Delta 100</option>
+		<option value="22,42,36" <%= (op->mod("filter")=="22,42,36"? "selected=\"selected\"":"" )%>>Ilford Delta 400</option>
+		<option value="31,36,33" <%= (op->mod("filter")=="31,36,33"? "selected=\"selected\"":"" )%>>Ilford Delta 400 Pro</option>
+		<option value="28,41,31" <%= (op->mod("filter")=="28,41,31"? "selected=\"selected\"":"" )%>>Ilford FP4</option>
+		<option value="23,37,40" <%= (op->mod("filter")=="23,37,40"? "selected=\"selected\"":"" )%>>Ilford HP5</option>
+		<option value="33,36,31" <%= (op->mod("filter")=="33,36,31"? "selected=\"selected\"":"" )%>>Ilford Pan F</option>
+		<option value="36,31,33" <%= (op->mod("filter")=="36,31,33"? "selected=\"selected\"":"" )%>>Ilford SFX</option>
+		<option value="21,42,37" <%= (op->mod("filter")=="21,42,37"? "selected=\"selected\"":"" )%>>Ilford  XP2</option>
+		</optgroup>
+
+		<optgroup label="Kodak">
+		<option value="24,37,39" <%= (op->mod("filter")=="24,37,39"? "selected=\"selected\"":"" )%>>Kodak Tmax 100</option>
+		<option value="27,36,37" <%= (op->mod("filter")=="27,36,37"? "selected=\"selected\"":"" )%>>Kodak Tmax 400</option>
+		<option value="25,35,40" <%= (op->mod("filter")=="25,35,40"? "selected=\"selected\"":"" )%>>Kodak Tri-X</option>
+		</optgroup>
+
+	      </select>

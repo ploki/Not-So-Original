@@ -1,0 +1,66 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%>
+Enhance :
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="microcontrasts"; evalScripts=true;%>">µ#</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="unsharpmask"; evalScripts=true;%>">m#</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="lca"; evalScripts=true;%>">LCA</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="sigmoidalcontrast"; evalScripts=true;%>">sigCTRST</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="sinuscontrast"; evalScripts=true;%>">sinCTRST</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="contrast"; evalScripts=true;%>">CTRST</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="hotpixels"; evalScripts=true;%>">hot</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="enhance"; evalScripts=true;%>">NHNC</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="medianfilter"; evalScripts=true;%>">MED</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="despeckle"; evalScripts=true;%>">DES</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="adaptive_threshold"; evalScripts=true;%>">ADT</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="reduce_noise"; evalScripts=true;%>">RNOISE</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="segment"; evalScripts=true;%>">SEG</a>
+<br/>
+Exposure :
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="equalize"; evalScripts=true;%>">EQU</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="normalize"; evalScripts=true;%>">NORM</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="level"; evalScripts=true;%>">LVL</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="dynamic_range"; evalScripts=true;%>">DR</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="softdr"; evalScripts=true;%>">softDR</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="linearize"; evalScripts=true;%>">LIN</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="igamma"; evalScripts=true;%>">iγ</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="gamma"; evalScripts=true;%>">γ</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="rgbgamma"; evalScripts=true;%>">RGBγ</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="modulate"; evalScripts=true;%>">HSV</a>
+<br/>
+View :
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="zonesystem"; evalScripts=true;%>">ZONE</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="histogram"; evalScripts=true;%>">HIST</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="showcurve"; evalScripts=true;%>">CRV</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="lines"; evalScripts=true;%>">1/3&OR</a>
+<br/>
+Effects :
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="whitebalance"; evalScripts=true;%>">W/B</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="bw"; evalScripts=true;%>">B/W</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="shadowdesaturate"; evalScripts=true;%>">desha</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="selectivelabop"; evalScripts=true;%>">slo</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="negate"; evalScripts=true;%>">NEG</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="colorfilter"; evalScripts=true;%>">FILTR</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="charcoal"; evalScripts=true;%>">CHCAL</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="blur"; evalScripts=true;%>">BLUR</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="gaussianblur"; evalScripts=true;%>">gBLUR</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="emboss"; evalScripts=true;%>">MBOSS</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="implode"; evalScripts=true;%>">MPLOD</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="oilpaint"; evalScripts=true;%>">OIL</a>
+
+
+<br/>
+Geometry :
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="flip"; evalScripts=true;%>">FLIP</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="flop"; evalScripts=true;%>">FLOP</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="rotateccw"; evalScripts=true;%>">rCCW</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="rotatecw"; evalScripts=true;%>">rCW</a>
+
+<br/>
+Et enfin :
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="process"; with["control"]="reset"; evalScripts=true;%>">R.A.Z</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="process"; with["control"]="save"; evalScripts=true;%>">Enregistrer</a>|
+        <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="process"; confirm="Set default process"; with["control"]="setdefault"; evalScripts=true;%>">Nouveau par défaut</a>|
+        <!-- FIXME: Changer le lien suivant : sans ajax et vers l'affichage de l'image -->
+        <a href="<%=request.getContextPath()%>/edit.C<%=request.getPathInfo()%>?action=process&amp;control=quit">Quitter</a>

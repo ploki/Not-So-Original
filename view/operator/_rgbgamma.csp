@@ -1,0 +1,35 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+ptr<op::Operator> op = request.getAttribute("operator");
+%>
+Gamma correct image (uniform red, green, and blue correction).
+<hr/>
+Red γ = <input type="text" name="red" value="<%=op->mod("red")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="red";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+Green γ = <input type="text" name="gree," value="<%=op->mod("green")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="green";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+Blue γ = <input type="text" name="blue" value="<%=op->mod("blue")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="blue";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>

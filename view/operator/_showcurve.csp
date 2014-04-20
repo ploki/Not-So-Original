@@ -1,0 +1,21 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+ptr<op::Operator> op = request.getAttribute("operator");
+%>Fonction de transfert
+<hr/>
+Mode = <select name="mode" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="mode";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("mode")=="0" ? "selected=\"selected\"":"" )%>>sRGB levels</option>
+      <option value="1" <%= (op->mod("mode")=="1" ? "selected=\"selected\"":"" )%>>sRGB linear</option>
+      <option value="2" <%= (op->mod("mode")=="2" ? "selected=\"selected\"":"" )%>>log-2</option>
+    </select>
+<br/>
+

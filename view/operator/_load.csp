@@ -1,0 +1,110 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+ptr<op::Operator> op = request.getAttribute("operator");
+%>
+Lecture de l'image
+<hr/>
+Curve = <select name="discrete" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+				update="stack";
+				with["operator"]=itostring(op->getId());
+				with["action"]="silent_mod";
+				with["name"]="discrete";
+				withTail="'&value='+this.value";
+				evalScripts=true;
+				%>"/>
+		<option value="0" <%= (op->mod("discrete")=="0"? "selected=\"selected\"":"" )%>>continue</option>
+		<option value="1" <%= (op->mod("discrete")=="1"? "selected=\"selected\"":"" )%>>discrete 1IL</option>
+		<option value="2" <%= (op->mod("discrete")=="2"? "selected=\"selected\"":"" )%>>discrete 1/2IL</option>
+		<option value="3" <%= (op->mod("discrete")=="3"? "selected=\"selected\"":"" )%>>discrete 1/3IL</option>
+	</select>
+<br/>
+Linear color space = <select name="linear" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+				update="stack";
+				with["operator"]=itostring(op->getId());
+				with["action"]="silent_mod";
+				with["name"]="linear";
+				withTail="'&value='+this.value";
+				evalScripts=true;
+				%>"/>
+		<option value="0" <%= (op->mod("linear")=="0"? "selected=\"selected\"":"" )%>>sRGB</option>
+		<option value="1" <%= (op->mod("linear")=="1"? "selected=\"selected\"":"" )%>>Linear</option>
+	</select>
+
+<hr/>
+rotate = <input type="text" name="rotate" value="<%=op->mod("rotate")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="rotate";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+zoom % = <input type="text" name="zoom" value="<%=op->mod("zoom")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="zoom";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<hr/>
+autocrop = <select name="autocrop" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+				update="stack";
+				with["operator"]=itostring(op->getId());
+				with["action"]="silent_mod";
+				with["name"]="autocrop";
+				withTail="'&value='+this.value";
+				evalScripts=true;
+				%>"/>
+		<option value="" <%= (op->mod("autocrop")==""? "selected=\"selected\"":"" )%>>userdef</option>
+		<option value="left/top" <%= (op->mod("autocrop")=="left/top"? "selected=\"selected\"":"" )%>>square @ left/top</option>
+		<option value="center" <%= (op->mod("autocrop")=="center"? "selected=\"selected\"":"" )%>>square @ center</option>
+		<option value="right/bottom" <%= (op->mod("autocrop")=="right/bottom"? "selected=\"selected\"":"" )%>>square @ right/bottom</option>
+
+		<option value="4/3-left/top" <%= (op->mod("autocrop")=="4/3-left/top"? "selected=\"selected\"":"" )%>>4/3 @ left/top</option>
+		<option value="4/3-center" <%= (op->mod("autocrop")=="4/3-center"? "selected=\"selected\"":"" )%>>4/3 @ center</option>
+		<option value="4/3-right/bottom" <%= (op->mod("autocrop")=="4/3-right/bottom"? "selected=\"selected\"":"" )%>>4/3 @ right/bottom</option>
+
+
+		<option value="reset" <%= (op->mod("autocrop")=="reset"? "selected=\"selected\"":"" )%>>reset</option>
+	</select>
+<br/>
+crop x1 = <input type="text" name="radius" value="<%=op->mod("crop_x1")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="crop_x1";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+crop y1 = <input type="text" name="radius" value="<%=op->mod("crop_y1")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="crop_y1";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+crop x2 = <input type="text" name="radius" value="<%=op->mod("crop_x2")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="crop_x2";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+crop y2 = <input type="text" name="radius" value="<%=op->mod("crop_y2")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="crop_y2";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>

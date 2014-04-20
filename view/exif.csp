@@ -1,0 +1,47 @@
+<%#
+#include <Gallery/common.H>
+%>
+<%
+ptr<ExifTags> exif=request.getAttribute("exif"); 
+%>
+
+<div id="exif_table" style="display: none;">
+<table class="exif" border="0">
+<tr><td align="right">Date/Heure: </td><td><b><%=exif->Image_DateTime%></b></td></tr>
+<tr><td align="right">Constructeur: </td><td><b><%=exif->Image_Make%></b></td></tr>
+
+<tr><td align="right">Modèle: </td><td><b><%=exif->Image_Model%></b></td></tr><%
+if ( ! exif->Nikon3_Lens.empty() ) {
+%>
+<tr><td align="right">Objectif: </td><td><b><%=exif->Nikon3_Lens%></b></td></tr><%}
+%>
+<tr><td align="right">Focale réelle: </td><td><b><%=exif->Photo_FocalLength%>mm</b></td></tr>
+<tr><td align="right">Focale équivalente en 35mm: </td><td><b><%=exif->Photo_FocalLengthIn35mmFilm%>mm</b></td></tr>
+<tr><td align="right">Ouverture: </td><td><b>f/<%=ftostring(exif->Photo_FNumber)%></b></td></tr>
+<%
+bool longtemps;
+longtemps = exif->Photo_ExposureTime >= 1;
+
+ %><tr><td align="right">Temps de pose: </td><td><b><%=(longtemps?"":"1/")%><%=ftostring(longtemps?exif->Photo_ExposureTime:1/exif->Photo_ExposureTime)%>s</b></td></tr>
+<tr><td align="right">Sensibilité: </td><td><b><%=exif->Photo_ISOSpeedRatings%>ISO</b></td></tr>
+<tr><td align="right">Flash: </td><td><b><%=(exif->Photo_Flash&1?"F":"Sans f")%>lash</b></td></tr>
+<tr><td align="right">Ev: </td><td><b><%=exif->Ev%></b></td></tr>
+<tr><td align="right">Bv: </td><td><b><%=exif->Bv%></b></td></tr>
+<tr><td align="right">Luminance point gris: </td><td><b><%=exif->B%>cd/m²</b></td></tr>
+<tr><td align="right">Éclairement prévu: </td><td><b><%=exif->I%>lux</b></td></tr>
+<tr>
+<td></td><td><a href="javascript:toggle_div('exif_table');toggle_div('exif_line');">Moins</a></td></tr>
+</table>
+</div>
+<div id="exif_line">
+<p class="exif"><span title="Date/Heure de la prise de vue"><%=exif->Image_DateTime%></span>
+              | <span title="Constructeur"><%=exif->Image_Make%></span>
+              | <span title="Modèle"><%=exif->Image_Model%></span>
+              | <span title="Sensibilité"><%=exif->Photo_ISOSpeedRatings%>ISO</span>
+              | <span title="Focale équivalente en 35mm"><%=exif->Photo_FocalLengthIn35mmFilm%>mm</span>
+              | <span title="Ouverture">f/<%=ftostring(exif->Photo_FNumber)%></span>
+              | <span title="Temps de pose"><%=(longtemps?"":"1/")%><%=ftostring(longtemps?exif->Photo_ExposureTime:1/exif->Photo_ExposureTime)%>s</span>
+              | <span title="Flash"><%=(exif->Photo_Flash&1?"F":"Sans f")%>lash</span>
+              | <span title="Bv, point gris à <%=exif->B%>cd/m² ou exposé pour un éclairement de <%=exif->I%>lux"><%=exif->Bv%></span>
+              | <a href="javascript:toggle_div('exif_table');toggle_div('exif_line');">Plus</a></p>
+</div>

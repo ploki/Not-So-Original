@@ -1,0 +1,41 @@
+gallery (1.0-rc5-1) unstable; urgency=low
+
+  * release candidate 5
+  * OpenMP support
+  * improved editor
+
+ -- Guillaume Gimenez <ggimenez@blackmilk.fr>  Thu, 30 Jul 2009 11:44:42 +0100
+
+gallery (1.0-rc4-1) unstable; urgency=low
+
+  * release candidate 4
+  * added image editor
+
+ -- Guillaume Gimenez <ggimenez@blackmilk.fr>  Mon, 06 Mar 2009 21:57:22 +0100
+
+gallery (1.0-rc3-1) unstable; urgency=low
+
+  * release candidate 3
+  * added exif data
+
+ -- Guillaume Gimenez <ggimenez@blackmilk.fr>  Mon, 14 May 2007 08:31:43 +0100
+
+gallery (1.0-rc2-1) unstable; urgency=low
+
+  * release candidate 2
+  * add crontabized thumbnailer
+
+ -- Guillaume Gimenez <ggimenez@blackmilk.fr>  Fri, 11 May 2007 12:30:43 +0100
+
+gallery (1.00-rc1-1) unstable; urgency=low
+
+  * release candidate 1
+
+ -- Guillaume Gimenez <ggimenez@blackmilk.fr>  Wed,  9 May 2007 09:34:00 +0100
+
+gallery (0.99-beta7-1) unstable; urgency=low
+
+  * Initial release
+
+ -- Guillaume Gimenez <ggimenez@blackmilk.fr>  Thu,  1 Mar 2007 12:26:45 +0100
+

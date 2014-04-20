@@ -1,0 +1,35 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+ptr<op::Operator> op = request.getAttribute("operator");
+%>
+Apply adaptive thresholding to the image. Adaptive thresholding is useful if the ideal threshold level is not known in advance, or if the illumination gradient is not constant across the image. Adaptive thresholding works by evaulating the mean (average) of a pixel region (size specified by width and height) and using the mean as the thresholding value. In order to remove residual noise from the background, the threshold may be adjusted by subtracting a constant offset (default zero) from the mean to compute the threshold.
+<hr/>
+Width = <input type="text" name="width" value="<%=op->mod("width")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="width";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+Height = <input type="text" name="height" value="<%=op->mod("height")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="height";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+Offset = <input type="text" name="offset" value="<%=op->mod("offset")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="offset";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>

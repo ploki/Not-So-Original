@@ -1,0 +1,27 @@
+Source: gallery
+Section: web
+Priority: extra
+Maintainer: Guillaume Gimenez <ggimenez@blackmilk.fr>
+Build-Depends: debhelper (>= 5), libapache2-mod-raii (>= 0.99), libmagick++9-dev, libexiv2-dev, libcurl4-openssl-dev
+Standards-Version: 3.7.2
+
+Package: notsooriginal
+Architecture: any
+Depends: libapache2-mod-raii (>= 0.99), libmagick++9-dev, libexiv2-dev, libcurl4-openssl-dev
+Description: a wonderful image gallery for libapache2-mod-raii
+ * NotSoOriginal is not O.R.I.G.I.N.A.L.
+ * NSO is a bunch of C++ code lines to get your photos on the web
+ * The aim of NSO is to handle your directories of digital photos
+   without extra files for comment and descriptions. Therefor you
+   can put photographs in the directory with DAV or directly with
+   your digital still camera/scanner.
+ * preview and thumbnails are auto generated when you first hit
+   a new or updated image.
+ * You can create albums and link photo to them. (virtual directory
+   and photos)
+ * It handles anonymous, granted and privileged users.
+ * You can configure your directories as public, private and hidden.
+ * view and hires download count
+ * Comment and description.
+ * Pour les français, vous pouvez envoyer les photos qui vous plaisent
+   chez PHOTO-SERVICE pour tirage

@@ -1,0 +1,117 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+ptr<op::Operator> op = request.getAttribute("operator");
+%>
+replace gamma, with a log-sinus projection of nEV on 256 values<br/>
+<hr/>
+Dynamic Range =<select name="dynamic_range" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                update="stack";
+                                with["operator"]=itostring(op->getId());
+                                with["action"]="silent_mod";
+                                with["name"]="dynamic_range";
+                                withTail="'&value='+this.value";
+                                evalScripts=true;
+                                %>"/>
+                <option value="0.5" <%= (op->mod("dynamic_range")=="0.5"? "selected=\"selected\"":"" )%>>1/2</option>
+                <option value="1" <%= (op->mod("dynamic_range")=="1"? "selected=\"selected\"":"" )%>>1</option>
+                <option value="1.5" <%= (op->mod("dynamic_range")=="1.5"? "selected=\"selected\"":"" )%>>1 1/2</option>
+                <option value="2" <%= (op->mod("dynamic_range")=="2"? "selected=\"selected\"":"" )%>>2</option>
+                <option value="2.5" <%= (op->mod("dynamic_range")=="2.5"? "selected=\"selected\"":"" )%>>2 1/2</option>
+                <option value="3" <%= (op->mod("dynamic_range")=="3"? "selected=\"selected\"":"" )%>>3</option>
+                <option value="3.5" <%= (op->mod("dynamic_range")=="3.5"? "selected=\"selected\"":"" )%>>3 1/2</option>
+                <option value="4" <%= (op->mod("dynamic_range")=="4"? "selected=\"selected\"":"" )%>>4</option>
+                <option value="4.5" <%= (op->mod("dynamic_range")=="4.5"? "selected=\"selected\"":"" )%>>4 1/2</option>
+                <option value="5" <%= (op->mod("dynamic_range")=="5"? "selected=\"selected\"":"" )%>>5</option>
+                <option value="5.5" <%= (op->mod("dynamic_range")=="5.5"? "selected=\"selected\"":"" )%>>5 1/2</option>
+                <option value="6" <%= (op->mod("dynamic_range")=="6"? "selected=\"selected\"":"" )%>>6</option>
+                <option value="6.5" <%= (op->mod("dynamic_range")=="6.5"? "selected=\"selected\"":"" )%>>6 1/2</option>
+                <option value="7" <%= (op->mod("dynamic_range")=="7"? "selected=\"selected\"":"" )%>>7</option>
+                <option value="7.5" <%= (op->mod("dynamic_range")=="7.5"? "selected=\"selected\"":"" )%>>7 1/2</option>
+                <option value="8" <%= (op->mod("dynamic_range")=="8"? "selected=\"selected\"":"" )%>>8</option>
+                <option value="8.5" <%= (op->mod("dynamic_range")=="8.5"? "selected=\"selected\"":"" )%>>8 1/2</option>
+                <option value="9" <%= (op->mod("dynamic_range")=="9"? "selected=\"selected\"":"" )%>>9</option>
+                <option value="9.5" <%= (op->mod("dynamic_range")=="9.5"? "selected=\"selected\"":"" )%>>9 1/2</option>
+                <option value="10" <%= (op->mod("dynamic_range")=="10"? "selected=\"selected\"":"" )%>>10</option>
+                <option value="10.5" <%= (op->mod("dynamic_range")=="10.5"? "selected=\"selected\"":"" )%>>10 1/2</option>
+                <option value="11" <%= (op->mod("dynamic_range")=="11"? "selected=\"selected\"":"" )%>>11</option>
+                <option value="11.5" <%= (op->mod("dynamic_range")=="11.5"? "selected=\"selected\"":"" )%>>11 1/2</option>
+                <option value="12" <%= (op->mod("dynamic_range")=="12"? "selected=\"selected\"":"" )%>>12</option>
+                <option value="12.5" <%= (op->mod("dynamic_range")=="12.5"? "selected=\"selected\"":"" )%>>12 1/2</option>
+                <option value="13" <%= (op->mod("dynamic_range")=="13"? "selected=\"selected\"":"" )%>>13</option>
+                <option value="13.5" <%= (op->mod("dynamic_range")=="13.5"? "selected=\"selected\"":"" )%>>13 1/2</option>
+                <option value="14" <%= (op->mod("dynamic_range")=="14"? "selected=\"selected\"":"" )%>>14</option>
+                <option value="14.5" <%= (op->mod("dynamic_range")=="14.5"? "selected=\"selected\"":"" )%>>14 1/2</option>
+                <option value="15" <%= (op->mod("dynamic_range")=="15"? "selected=\"selected\"":"" )%>>15</option>
+                <option value="15.5" <%= (op->mod("dynamic_range")=="15.5"? "selected=\"selected\"":"" )%>>15 1/2</option>
+                <option value="16" <%= (op->mod("dynamic_range")=="16"? "selected=\"selected\"":"" )%>>16</option>
+        </select> IL
+<br/>
+red diff = <input type="text" name="red_diff" value="<%=op->mod("red_diff")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="red_diff";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+blue diff = <input type="text" name="blue_diff" value="<%=op->mod("blue_diff")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="blue_diff";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<hr/>
+Exposure = <select name="val" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                update="stack";
+                                with["operator"]=itostring(op->getId());
+                                with["action"]="silent_mod";
+                                with["name"]="val";
+                                withTail="'&value='+this.value";
+                                evalScripts=true;
+                                %>"/>
+                <option value="4" <%= (op->mod("val")=="4"? "selected=\"selected\"":"" )%>>+4</option>
+                <option value="3.8333" <%= (op->mod("val")=="3.8333"? "selected=\"selected\"":"" )%>>+3 5/6</option>
+                <option value="3.6667" <%= (op->mod("val")=="3.6667"? "selected=\"selected\"":"" )%>>+3 2/3</option>
+                <option value="3.5" <%= (op->mod("val")=="3.5"? "selected=\"selected\"":"" )%>>+3 1/2</option>
+                <option value="3.3333" <%= (op->mod("val")=="3.3333"? "selected=\"selected\"":"" )%>>+3 1/3</option>
+                <option value="3.1667" <%= (op->mod("val")=="3.1667"? "selected=\"selected\"":"" )%>>+3 1/6</option>
+                <option value="3" <%= (op->mod("val")=="3"? "selected=\"selected\"":"" )%>>+3</option>
+                <option value="2.8333" <%= (op->mod("val")=="2.8333"? "selected=\"selected\"":"" )%>>+2 5/6</option>
+                <option value="2.6667" <%= (op->mod("val")=="2.6667"? "selected=\"selected\"":"" )%>>+2 2/3</option>
+                <option value="2.5" <%= (op->mod("val")=="2.5"? "selected=\"selected\"":"" )%>>+2 1/2</option>
+                <option value="2.3333" <%= (op->mod("val")=="2.3333"? "selected=\"selected\"":"" )%>>+2 1/3</option>
+                <option value="2.1667" <%= (op->mod("val")=="2.1667"? "selected=\"selected\"":"" )%>>+2 1/6</option>
+                <option value="2" <%= (op->mod("val")=="2"? "selected=\"selected\"":"" )%>>+2</option>
+                <option value="1.8333" <%= (op->mod("val")=="1.8333"? "selected=\"selected\"":"" )%>>+1 5/6</option>
+                <option value="1.6667" <%= (op->mod("val")=="1.6667"? "selected=\"selected\"":"" )%>>+1 2/3</option>
+                <option value="1.5" <%= (op->mod("val")=="1.5"? "selected=\"selected\"":"" )%>>+1 1/2</option>
+                <option value="1.3333" <%= (op->mod("val")=="1.3333"? "selected=\"selected\"":"" )%>>+1 1/3</option>
+                <option value="1.1667" <%= (op->mod("val")=="1.1667"? "selected=\"selected\"":"" )%>>+1 1/6</option>
+                <option value="1" <%= (op->mod("val")=="1"? "selected=\"selected\"":"" )%>>+1</option>
+                <option value="0.8333" <%= (op->mod("val")=="0.8333"? "selected=\"selected\"":"" )%>>+5/6</option>
+                <option value="0.6667" <%= (op->mod("val")=="0.6667"? "selected=\"selected\"":"" )%>>+2/3</option>
+                <option value="0.5" <%= (op->mod("val")=="0.5"? "selected=\"selected\"":"" )%>>+1/2</option>
+                <option value="0.3333" <%= (op->mod("val")=="0.3333"? "selected=\"selected\"":"" )%>>+1/3</option>
+                <option value="0.1667" <%= (op->mod("val")=="0.1667"? "selected=\"selected\"":"" )%>>+1/6</option>
+                <option value="0" <%= (op->mod("val")=="0"? "selected=\"selected\"":"" )%>>-0-</option>
+
+        </select> IL
+<hr/>
+
+Lab = <select name="lab" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="lab";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("lab")=="0" ? "selected=\"selected\"":"" )%>>NON</option>
+      <option value="1" <%= (op->mod("lab")=="1" ? "selected=\"selected\"":"" )%>>OUI</option>
+    </select>
+<br/>

@@ -1,0 +1,14 @@
+#! /bin/sh
+
+
+function nsodir() {
+	test -d "$1" || mkdir -p "$1"
+	chown www-data: "$1"
+}
+nsodir /srv/raii
+nsodir /srv/raii/build
+nsodir /srv/raii/gallery
+
+if [ ! -f /srv/raii/gallery/gallery.db ] ; then
+	sqlite /srv/raii/gallery/gallery.db < /usr/share/gallery/init_db.sqlite
+fi

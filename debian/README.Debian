@@ -1,0 +1,29 @@
+gallery for Debian
+------------------
+
+To enable NotSoOriginal you must uncomment the Alias directive in
+/etc/apache2/conf.d/notsooriginal.conf
+
+
+Configuration variables : /etc/apache2/conf.d/notsooriginal.conf
+
+RaiiParameter "TMP" "/srv/raii/gallery"
+Where to put preview/ and thumbnail/ directories
+
+RaiiParameter "ROOT" "/home/guigui/photos"
+Where are your photographs
+
+RaiiParameter "ShowSecured" "false"
+Whether to show privates directories to unauthenticated users
+
+RaiiParameter "ShowLocks" "false"
+Whether to show private directory locks to unauthenticated users
+
+RaiiParameter "AllowUserVDir" "false"
+Whether to allow users to create albums
+
+RaiiParameter "AdminShowPerms" "true"
+Whether to display all icons (locks and ghost) when logged in as administrator
+
+
+ -- Guillaume Gimenez <ggimenez@blackmilk.fr.fr>  Thu,  1 Mar 2007 12:26:45 +0100

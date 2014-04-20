@@ -1,0 +1,35 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+ptr<op::Operator> op = request.getAttribute("operator");
+%>
+Replace image with a sharpened version of the original image using the unsharp mask algorithm. The radius_ parameter specifies the radius of the Gaussian, in pixels, not counting the center pixel. The sigma_ parameter specifies the standard deviation of the Gaussian, in pixels. The amount_ parameter specifies the percentage of the difference between the original and the blur image that is added back into the original. The threshold_ parameter specifies the threshold in pixels needed to apply the diffence amount.
+<hr/>
+Radius = <input type="text" name="sigma" value="<%=op->mod("sigma")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="sigma";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+Amount = <input type="text" name="amount" value="<%=op->mod("amount")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="amount";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+Threshold = <input type="text" name="threshold" value="<%=op->mod("threshold")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="threshold";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>

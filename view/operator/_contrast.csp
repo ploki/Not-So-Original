@@ -1,0 +1,51 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+ptr<op::Operator> op = request.getAttribute("operator");
+%>
+Contrast image (enhance intensity differences in image)
+<hr/>
+Sharpen = <select name="sharpen" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="sharpen";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("sharpen")=="0" ? "selected=\"selected\"":"" )%>>NON</option>
+      <option value="1" <%= (op->mod("sharpen")=="1" ? "selected=\"selected\"":"" )%>>OUI</option>
+    </select>
+<br/>
+Quantity = <select name="quantity" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                update="stack";
+                                with["operator"]=itostring(op->getId());
+                                with["action"]="silent_mod";
+                                with["name"]="quantity";
+                                withTail="'&value='+this.value";
+                                evalScripts=true;
+                                %>"/>
+                <option value="1" <%= (op->mod("quantity")=="1"? "selected=\"selected\"":"" )%>>1</option>
+                <option value="2" <%= (op->mod("quantity")=="2"? "selected=\"selected\"":"" )%>>2</option>
+                <option value="3" <%= (op->mod("quantity")=="3"? "selected=\"selected\"":"" )%>>3</option>
+                <option value="4" <%= (op->mod("quantity")=="4"? "selected=\"selected\"":"" )%>>4</option>
+                <option value="5" <%= (op->mod("quantity")=="5"? "selected=\"selected\"":"" )%>>5</option>
+                <option value="6" <%= (op->mod("quantity")=="6"? "selected=\"selected\"":"" )%>>6</option>
+                <option value="7" <%= (op->mod("quantity")=="7"? "selected=\"selected\"":"" )%>>7</option>
+                <option value="8" <%= (op->mod("quantity")=="8"? "selected=\"selected\"":"" )%>>8</option>
+                <option value="9" <%= (op->mod("quantity")=="9"? "selected=\"selected\"":"" )%>>9</option>
+                <option value="10" <%= (op->mod("quantity")=="10"? "selected=\"selected\"":"" )%>>10</option>
+        </select>
+<hr/>
+Lab = <select name="lab" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="lab";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("lab")=="0" ? "selected=\"selected\"":"" )%>>NON</option>
+      <option value="1" <%= (op->mod("lab")=="1" ? "selected=\"selected\"":"" )%>>OUI</option>
+    </select>

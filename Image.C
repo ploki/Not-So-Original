@@ -1,0 +1,149 @@
+#include "common.H"
+
+String convertRaw(const String& root, const String& tmp, const String& filename) {
+  
+  prepareTmpDir(root,tmp,filename);
+  String tfile=tmp + String("/") + type[T_PROCESSED] + root + filename + String(".ppm");
+  int rc = system((String("dcraw -w -c ")+root+filename+"> "+tfile).c_str());
+  if ( rc ) {
+    Logger log("converRaw");
+    log("system call failed with rc="+itostring(rc));
+  }
+  return tfile;
+}
+
+
+void makeThumbnail(const String& root, const String& tmp, const String& filename) {
+
+
+   Magick::Geometry geo;
+   int w,h,W,H;
+   double coef;
+   
+   Magick::Image image;
+   
+   bool israw=false;
+   israw=isRaw(root+filename);
+   
+   /* si un traitement existe en base, il faut l'appliquer et rendre la main */ {
+     ptr<Process> process = new Process( root,tmp,filename);
+     Connection conn;
+     bool processExists = false;
+     if ( israw ) processExists = process->loadFrom(conn,"__default__");
+     processExists = process->loadFrom(conn,filename) || processExists;
+     
+     if ( processExists ) {
+       for ( int i = T_LAST-1 ; i >= 0 ; -- i ) {
+        
+	 String thumbnail=tmp + String("/") + type[i] + root + filename + String(".jpg");
+                        
+	 Magick::Blob blob;
+	 process->getBlob(maxsize[i],&blob);
+                                
+	 FILE *f = fopen(thumbnail.c_str(),"w");
+	 if ( !f ) throw IOException(("ecriture image "+thumbnail).c_str());
+	 int rc = fwrite(blob.data(),blob.length(),1,f);
+	 if ( !rc ) {
+	   Logger log("makeThumbnail");
+	   log(String("fwrite call failed on ")+thumbnail+": "+strerror(errno));
+	 }
+	 fclose(f);
+       }
+       return;
+     }
+   }
+                
+   try {
+     if ( israw ) {
+
+       String tfile = convertRaw(root,tmp,filename);
+       image.read(tfile);
+       unlink(tfile.c_str());
+     }
+     else
+       image.read( root+filename );
+   }
+   catch (std::exception& e) {
+     Logger log("magick++");
+     log(e.what());
+     throw ImageException((root+filename).c_str());
+   }
+   geo=image.size();
+   w=geo.width();
+   h=geo.height();
+
+   if ( h == 0 || w == 0)
+     throw ServletException("L'image a une taille nulle.");
+
+   for ( int i = 0 ; i < T_LAST ; ++ i ) {
+
+     String thumbnail=tmp + String("/") + type[i] + root + filename + String(".jpg");
+
+     if ( maxsize[i] > 0 ) {
+       if ( w < h )
+	 coef=((double)maxsize[i])/((double)h);
+       else
+	 coef=((double)maxsize[i])/((double)w);
+       W=(int)(w*coef);
+       H=(int)(h*coef);
+
+       image.scale(Magick::Geometry(W,H));
+     }
+
+     if ( ! israw && i == T_PROCESSED ) continue;
+
+     Magick::Image tmpImage = image;
+
+     const double kernel[]={0,-1,0,-1,8,-1,0,-1,0};
+     //const double kernel[]={0,1,0,1,-4,1,0,1,0};
+     tmpImage.convolve(3,kernel);
+     tmpImage.interlaceType(Magick::LineInterlace);
+     tmpImage.quality(95);
+     try {
+       tmpImage.write( thumbnail );
+     }
+     catch (std::exception& e) {
+       Logger log("magick++");
+       log(e.what());
+       throw IOException(thumbnail.c_str());
+     }
+   }
+
+ }
+
+int getProcessDate(const String& filename) {
+  int ts=-1;
+  Connection conn;
+  ResultSet rs = conn.query("SELECT date FROM gallery_process_ts WHERE filename = '"+path_encode(filename)+"' ORDER BY date");
+  while (rs.next()) ts=rs["date"].toi();
+  return ts;
+}
+
+bool isThumbnailUpToDate(const String& root, const String& tmp, const String& filename) {
+  
+  struct stat stImage,stThumbnail;
+  String thumbnail=tmp + String("/") + type[T_PREVIEW] + root + filename + String(".jpg");
+  int ret;
+
+  stat((root+filename).c_str(),&stImage);
+  ret=stat(thumbnail.c_str(),&stThumbnail);
+
+  if ( ret < 0 || ( stImage.st_mtime > stThumbnail.st_mtime )
+       || ( getProcessDate(filename) > stThumbnail.st_mtime ) )
+    return false;
+  return true;
+}
+
+bool prepareThumbnail(const String& root, const String& tmp, const String& filename) {
+
+  if ( isVideo(root + filename) )
+    throw VideoException((root+filename).c_str());
+
+  bool isUpToDate=isThumbnailUpToDate(root,tmp,filename);
+  if ( ! isUpToDate ) {
+    prepareTmpDir(root,tmp,filename);
+    makeThumbnail(root,tmp,filename);
+  }
+  return isUpToDate;
+}
+

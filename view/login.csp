@@ -1,0 +1,39 @@
+<%#
+#include <Gallery/common.H>
+%><%
+String flash;
+{
+  ptr<String> theFlash=request.getSession()->getAttribute("flash");
+  if ( theFlash ) flash=*theFlash;
+}
+
+request.getSession()->invalidate();
+
+%><?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/2000/REC-xhtml1-20000126/DTD/xhtml1-strict.dtd">
+<html>
+  <%:head title="Galerie photo :: login";%>
+
+<body onload="checkForTheme()">
+
+<h1 class="title">Photo gallery login</h1>
+
+<div class="navigation"><a href="#">Authentification</a></div>
+
+<div id="photoservicelogin" >
+        <form method="post" action="<%= ( request.getRequestURL() ) %>">
+                <%:textfield title="Votre nom d'utilisateur."; desc="Utilisateur :"; name="login"; value="";%>
+                <%:password title="Votre mot de passe."; desc="Mot de passe :"; name="password"; value="";%>
+                <%:submit name="submit"; value="Entrer";%>
+                <input type="hidden" name="action" value="login" />
+        </form>
+</div>
+<%
+        if ( ! flash.empty() ) {
+                response << "<div class=\"error\">" << flash << "</div>";
+        }
+%>
+<%:footer sessionCount=getServletContext()->getSessionCount(); %>
+</body>
+</html>

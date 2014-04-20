@@ -1,0 +1,1 @@
+-fopenmp -Wall -Wno-deprecated -Werror -I/usr/include/ImageMagick -lMagick++ -lGallery_model -I/usr/include/exiv2 -lexiv2 -O9 -Wl,-rpath,/srv/src/gallery -L/srv/src/gallery -I/srv/src

@@ -1,0 +1,17 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+ptr<op::Operator> op = request.getAttribute("operator");
+%>
+Median filter
+<hr/>
+Radius = <input type="text" name="radius" value="<%=op->mod("radius")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="radius";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>

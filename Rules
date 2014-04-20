@@ -1,0 +1,32 @@
+OFILES:=$(CFILES:.C=.o)
+
+
+%.o: %.C
+	@echo `RaiiBuild` `RaiiBuild --cplusplusflags` -fopenmp -c $< -o $@ -I/usr/include/exiv2 -I/usr/include/ImageMagick
+	@`RaiiBuild` `RaiiBuild --cplusplusflags` -fopenmp -c $< -o $@ -I/usr/include/exiv2 -I/usr/include/ImageMagick
+
+ifndef PROJECT
+all install clean:
+	@echo Define PROJECT variable
+	@false
+else
+
+
+TARGET=lib$(PROJECT)_$(MODULE).so
+
+all: $(TARGET)
+
+$(TARGET): $(OFILES)
+	@echo `RaiiBuild` `RaiiBuild --linkflags` $(OFILES) -o $@
+	@`RaiiBuild` `RaiiBuild --linkflags` -lcurl $(OFILES) -o $@
+
+
+clean:
+	rm -f *~ $(OFILES) $(TARGET)
+
+install: all
+	install -d $(DESTDIR)/usr/lib/
+	$(SU0) install $(TARGET) $(DESTDIR)/usr/lib/
+
+endif
+

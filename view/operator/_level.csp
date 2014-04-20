@@ -1,0 +1,36 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+ptr<op::Operator> op = request.getAttribute("operator");
+%>
+Level image. Adjust the levels of the image by scaling the colors falling between specified white and black points to the full available quantum range. The parameters provided represent the black, mid (gamma), and white points.  The black point specifies the darkest color in the image. Colors darker than the black point are set to zero. Mid point (gamma) specifies a gamma correction to apply to the image. White point specifies the lightest color in the image.  Colors brighter than the white point are set to the maximum quantum value. The black and white point have the valid range 0 to QuantumRange while mid (gamma) has a useful range of 0 to ten.
+<hr/>
+Black Point percentil = <input type="text" name="blackpoint" value="<%=op->mod("blackpoint")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="blackpoint";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+White Point percentil = <input type="text" name="whitepoint" value="<%=op->mod("whitepoint")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="whitepoint";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+Gamma = <input type="text" name="gamma" value="<%=op->mod("gamma")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="gamma";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+

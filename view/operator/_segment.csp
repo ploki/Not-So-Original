@@ -1,0 +1,27 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+ptr<op::Operator> op = request.getAttribute("operator");
+%>
+Segment (coalesce similar image components) by analyzing the histograms of the color components and identifying units that are homogeneous with the fuzzy c-means technique. Also uses quantizeColorSpace and verbose image attributes. Specify  clusterThreshold_ , as the number  of  pixels  each cluster  must exceed the cluster threshold to be considered valid. SmoothingThreshold_ eliminates noise in the  second derivative of the histogram. As the value is  increased, you can  expect  a  smoother second derivative.  The default is 1.5.
+<hr/>
+ClusterThreshold = <input type="text" name="cluster" value="<%=op->mod("cluster")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="cluster";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+SmoothingThreshold = <input type="text" name="smoothing" value="<%=op->mod("smoothing")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="smoothing";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+
