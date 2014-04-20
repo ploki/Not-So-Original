@@ -2184,6 +2184,7 @@ void unLabize(Image &image, Image &labImage) {
         Linearize(int i, ptr<Operator> lop) : Operator("linearize",i,lop) {
             mod("dynamic_range","6");
             mod("restore_gp","1");
+	    mod("lab","0");
             serial=0;
         }
         void doJob() {
@@ -2217,27 +2218,43 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
             double il=mod("dynamic_range").tof();
             double bias=((MaxRGB+1)/(pow(2.L,il)))-1;
             double mul = double(MaxRGB)/(log(double(MaxRGB)/bias)/log(2.L));
+	    bool lab=mod("lab").toi();
 
 		int h = image.rows(),
 			w = image.columns();
 
-		image.modifyImage();
-		Pixels pixel_cache(image);
+		Pixels *pixel_cache;
+		Image labImage = image;
+		if ( lab ) {
+		  Labize(image,labImage);
+		  iGamma(labImage,LAB_G,LAB_N,true);
+		  labImage.modifyImage();
+		  pixel_cache = new Pixels(labImage);
+		}
+		else {
+		  image.modifyImage();
+		  pixel_cache = new Pixels(image);
+		}
 
 //	#pragma omp parallel for
-            for ( y = 0 ; y < h ; ++y ) {
-			PixelPacket *pixels = pixel_cache.get(0,y,w,1);
-			if ( !pixels ) continue;
-                for ( x = 0 ; x < w ; ++x ) {
-		pixels[x].red=logize(bias,mul,pixels[x].red);
-		pixels[x].green=logize(bias,mul,pixels[x].green);
-		pixels[x].blue=logize(bias,mul,pixels[x].blue);
-
-
-            }
-	}
+		for ( y = 0 ; y < h ; ++y ) {
+		  PixelPacket *pixels = pixel_cache->get(0,y,w,1);
+		  if ( !pixels ) continue;
+		  for ( x = 0 ; x < w ; ++x ) {
+		    pixels[x].red=logize(bias,mul,pixels[x].red);
+		    pixels[x].green=logize(bias,mul,pixels[x].green);
+		    pixels[x].blue=logize(bias,mul,pixels[x].blue);
+		    
+		  }
+		}
 //	#pragma omp barrier
-	pixel_cache.sync();
+	pixel_cache->sync();
+	delete pixel_cache;
+
+	if ( lab ) {
+	  iGamma(labImage,LAB_G, LAB_N, false);
+	  unLabize(image,labImage);
+	}
 
 	curve.modifyImage();
 	Pixels curve_cache(curve);

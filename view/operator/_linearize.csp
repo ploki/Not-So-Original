@@ -51,4 +51,17 @@ Restore gray point with gamma = <select name="restore_gp" onchange="<%:prototype
       <option value="0" <%= (op->mod("restore_gp")=="0" ? "selected=\"selected\"":"" )%>>NON</option>
       <option value="1" <%= (op->mod("restore_gp")=="1" ? "selected=\"selected\"":"" )%>>OUI</option>
     </select>
+<hr/>
+
+Lab = <select name="lab" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                    update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="lab";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;
+                                   %>"/>
+      <option value="0" <%= (op->mod("lab")=="0" ? "selected=\"selected\"":"" )%>>NON</option>
+      <option value="1" <%= (op->mod("lab")=="1" ? "selected=\"selected\"":"" )%>>OUI</option>
+    </select>
 <br/>

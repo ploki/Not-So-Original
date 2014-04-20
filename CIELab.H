@@ -228,6 +228,10 @@ static void RGB_to_CIELab16(int rgb[3], int lab16[3] ) {
 }
 
 static void CIELab16_to_RGB(int lab16[3], int rgb[3] ) {
+
+        //MaxRGB is defined as Quantum which is not in scope
+        using MagickCore::Quantum; 
+
 	double lab[3];
 	int_to_lab(lab16,lab);
 	CIELab_to_RGB(lab,rgb);

@@ -31,6 +31,7 @@
 #include <raii.H>
 #include "common.H"
 #include <curl/curl.h>
+//#include <curl/types.h>
 #include <curl/easy.h>
 #include <sys/types.h>
 #include <utime.h>
@@ -249,11 +250,8 @@ void securityCheck(HttpServlet* servlet, HttpServletRequest& request, HttpServle
         String user=getCurrentUser(request);
         raii::Logger log("Gallery");
 
-	ptr<String> limit = request.getSession()->getAttribute("limit");
 
 	String path_info = path_encode(url_decode(request.getPathInfo()));
-	if ( limit && ! limit->empty() && *limit != path_info.substr(0,limit->length()) )
-		response.sendRedirect(request.getContextPath()+"/gallery.C"+*limit);
 
 	if ( ! request.getParameter("pass").empty() ) {
 		Connection conn;
@@ -270,7 +268,12 @@ void securityCheck(HttpServlet* servlet, HttpServletRequest& request, HttpServle
 			response.sendRedirect(request.getContextPath()+"/gallery.C"+path_info);
 
 	}
-        else if ( request.getParameter("action") == String("login") ) {
+
+	ptr<String> limit = request.getSession()->getAttribute("limit");
+	if ( limit && ! limit->empty() && *limit != path_info.substr(0,limit->length()) )
+		response.sendRedirect(request.getContextPath()+"/gallery.C"+*limit);
+
+        if ( request.getParameter("action") == String("login") ) {
                 user=request.getParameter("login");
                 String password=request.getParameter("password");
                 Connection conn;
