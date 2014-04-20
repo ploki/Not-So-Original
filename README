@@ -1,0 +1,83 @@
+== Not So Original
+
+A wonderful image gallery powered by libapache2-mod-raii
+
+== WTF is NotSoOriginal ?
+
+* NotSoOriginal is not O.R.I.G.I.N.A.L. (I borrowed Jimmac's graphics)
+* NotSoOriginal is a bunch of C++ code lines to get your photos on the web.
+* The aim of NotSoOriginal is to handle your directories of digital photos without extra files for comment and descriptions.
+* Therefor you can put photographs in the directory with DAV or directly with your digital still camera/scanner.
+* Preview and thumbnails are auto generated when you first hit a new or updated image.
+* You can create albums and link photo to them - virtual directory and photos.
+* You can create pass to grant acces to public to specifics directories
+* It handles anonymous, granted and privileged users.
+* You can configure your directories as public, private or hidden.
+* View and download counts, Comment and description.
+* All persisting stuffs are stored in one sqlite or PostgreSQL database.
+* Automatic or processed raw conversion. It's a true digital laboratory which makes it possible to precisely develop you raw photographs.
+* Lossless online photograph manipulation operators stacks which are saved in database.
+* Pour les français, vous pouvez envoyer les photos qui vous plaisent chez PHOTO-SERVICE pour tirage
+
+== Installation
+
+You will also need Prototype integration
+
+If you want to try the image processing part of the gallery, don't forget
+to " make install " in prototype directory and to link
+raii_Prototype/htdocs/prototype to /prototype on the web server.
+
+{{{
+echo 'Alias /prototype /path/to/raii_Prototype/htdocs/prototype' >> /etc/apache2/conf.d/gallery.conf
+}}}
+
+== Configuration
+
+Configuration variables are in /etc/apache2/conf.d/gallery.conf.
+
+{{{
+RaiiParameter "TMP" "/srv/raii/gallery"
+}}}
+Where to put preview/ and thumbnail/ directories
+
+{{{
+RaiiParameter "ROOT" "/home/porn/photos"
+}}}
+Where are your photographs
+
+{{{
+RaiiParameter "ShowSecured" "false"
+}}}
+Whether to show privates directories to unauthenticated users
+
+{{{
+RaiiParameter "ShowLocks" "false"
+}}}
+Whether to show private directory locks to unauthenticated users
+
+{{{
+RaiiParameter "AllowUserVDir" "false"
+}}}
+Whether to allow users to create albums
+
+{{{
+RaiiParameter "AdminShowPerms" "true"
+}}}
+Whether to display all icons (locks and ghost) when logged in as administrator
+
+{{{
+RaiiParameter "IncludeTop" "/path/to/a/file/on/hdd"
+}}}
+If not empty, include the specified file in the header of all gallery pages.
+
+{{{
+RaiiParameter "IncludeBottom" "/path/to/a/file/on/hdd"
+}}}
+If not empty, include the specified file in the footer of all gallery pages.
+
+== And then ?
+{{{
+# apache2ctl restart
+}}}
+
+And once you log in using the default admin account (passorwd is admin), you'll be able to create your real account.
