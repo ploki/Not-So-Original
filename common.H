@@ -241,6 +241,7 @@ class ExifTags : public raii::Object {
         double Photo_ExposureTime;      //Rational
         double Photo_FNumber;           //Rational
         long Photo_ISOSpeedRatings;   //Short
+        long Photo_Orientation; //Short
         raii::String Photo_FocalLength;       //Rational
         long Photo_Flash;             //Short
         raii::String Photo_FocalLengthIn35mmFilm; //Rational
@@ -310,7 +311,8 @@ class ExifTags : public raii::Object {
                 Photo_Flash=exifData["Exif.Photo.Flash"].toLong();
                 Photo_FocalLengthIn35mmFilm=ftostring(exifData["Exif.Photo.FocalLengthIn35mmFilm"].toFloat());
 
-
+		Photo_Orientation = exifData["Exif.Image.Orientation"].toLong();
+		
 		computeAPEX();
                 
 

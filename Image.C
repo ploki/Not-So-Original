@@ -91,7 +91,28 @@ void makeThumbnail(const String& root, const String& tmp, const String& filename
        unlink(tfile.c_str());
      }
      else
-       image.read( root+filename );
+       {
+	 image.read( root+filename );
+	 try {
+	   enum { UP_IS_UNDEF = 0, UP_IS_UP = 1 , UP_IS_LEFT = 2, UP_IS_BOTTOM = 4, UP_IS_RIGHT = 8};
+	   ExifTags etags(root+filename);
+	   switch (etags.Photo_Orientation)
+	     {
+	     case UP_IS_LEFT:
+	       image.rotate(90.);
+	     case UP_IS_RIGHT:
+	       image.rotate(-90.);
+	       break;
+	     case UP_IS_BOTTOM:
+	       image.rotate(180.);
+	       break;
+	     case UP_IS_UP:
+	     default:
+	       (void)0;
+	     }
+	 }
+	 catch(...) {}
+       }
    }
    catch (std::exception& e) {
      Logger log("magick++");

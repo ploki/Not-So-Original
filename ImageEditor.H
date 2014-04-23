@@ -677,7 +677,25 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
                 catch(...){
                     throw raii::Exception("ici");
                 }
-
+		try {
+		  enum { UP_IS_UNDEF = 0, UP_IS_UP = 1 , UP_IS_LEFT = 2, UP_IS_BOTTOM = 4, UP_IS_RIGHT = 8};
+		  ExifTags etags(mod("root") + mod("filename"));
+		  switch (etags.Photo_Orientation)
+		    {
+		    case UP_IS_LEFT:
+		      image.rotate(90.);
+		    case UP_IS_RIGHT:
+		      image.rotate(-90.);
+		      break;
+		    case UP_IS_BOTTOM:
+		      image.rotate(180.);
+		      break;
+		    case UP_IS_UP:
+		    default:
+		      (void)0;
+		    }
+		}
+		catch(...) {}
 		curve.size("65536x1");
         	Pixels curve_cache(curve);
 		PixelPacket *pixels = curve_cache.get(0,0,65536,1);
