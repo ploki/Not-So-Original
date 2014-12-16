@@ -89,8 +89,16 @@ using namespace Magick;
                 H=(int)(h*coef);
 
                 image.scale(Geometry(W,H));
-		const double kernel[]={0,-1,0,-1,8,-1,0,-1,0};
-		image.convolve(3,kernel);
+		double kernel[]={0,-1,0,-1,8,-1,0,-1,0};
+		double div = 0;
+		int i;
+		int order = 3;
+		int n = order * order;
+		for ( i = 0 ; i < n ; ++i )
+		  div+=kernel[i];
+		for ( i = 0 ; i < n ; ++i )
+		  kernel[i]/=div;
+		image.convolve(order, kernel);
                 try {
                         image.write( thumbnail );
                 }

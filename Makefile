@@ -23,4 +23,4 @@ clean:
 	@+$(PROPAGATE)
 
 thumbnailer: thumbnailer.C
-	`RaiiBuild` -I/usr/include/ImageMagick thumbnailer.C -o thumbnailer -lMagick++
+	`RaiiBuild` -I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6/ -DMAGICKCORE_HDRI_ENABLE=0 -DMAGICKCORE_QUANTUM_DEPTH=16 thumbnailer.C -o thumbnailer -lMagick++

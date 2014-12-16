@@ -139,7 +139,7 @@ static void CIELab_to_RGB(double lab[3], int rgb[3])
         for (cc=0; cc<3; cc++)
             tmpf += rgb_xyz[c][cc] * xyz[cc];
         rgb[c] = ( tmpf<0?0:tmpf ) * 65535.0 + 0.5;
-	if ( rgb[c] > signed(MaxRGB) ) rgb[c] = MaxRGB;
+	if ( rgb[c] > signed(QuantumRange) ) rgb[c] = QuantumRange;
 
     }
 
@@ -192,28 +192,32 @@ static void CIELab_to_RGB(double lab[3], int rgb[3])
         tmpf += rgb_xyz[0][1] * xyz[1]; \
         tmpf += rgb_xyz[0][2] * xyz[2]; \
         rgb[0] = ( tmpf<0?0:tmpf ) * 65535.0 + 0.5; \
-	if ( rgb[0] > signed(MaxRGB) ) rgb[0] = MaxRGB; \
+	if ( rgb[0] > QuantumRange ) rgb[0] = QuantumRange; \
         tmpf = 0; \
         tmpf += rgb_xyz[1][0] * xyz[0]; \
         tmpf += rgb_xyz[1][1] * xyz[1]; \
         tmpf += rgb_xyz[1][2] * xyz[2]; \
         rgb[1] = ( tmpf<0?0:tmpf ) * 65535.0 + 0.5; \
-	if ( rgb[1] > signed(MaxRGB) ) rgb[1] = MaxRGB; \
+	if ( rgb[1] > QuantumRange ) rgb[1] = QuantumRange; \
         tmpf = 0; \
         tmpf += rgb_xyz[2][0] * xyz[0]; \
         tmpf += rgb_xyz[2][1] * xyz[1]; \
         tmpf += rgb_xyz[2][2] * xyz[2]; \
         rgb[2] = ( tmpf<0?0:tmpf ) * 65535.0 + 0.5; \
-	if ( rgb[2] > signed(MaxRGB) ) rgb[2] = MaxRGB; \
+	if ( rgb[2] > QuantumRange ) rgb[2] = QuantumRange; \
 }
 
-static void lab_to_int(double lab[3], int lab16[3]) {
+
+        //QuantumRange is defined as Quantum which is not in scope
+        using MagickCore::Quantum; 
+
+static void lab_to_int(const double lab[3], quantum_t lab16[3]) {
 	lab16[0]=lab[0]*65535.L/100.L;
 	lab16[1]=(lab[1]+120.L)*65535.L/240.L;
 	lab16[2]=(lab[2]+120.L)*65535.L/240.L;
 }
 
-static void int_to_lab(int lab16[3], double lab[3]) {
+static void int_to_lab(const quantum_t lab16[3], double lab[3]) {
 	lab[0] = double(lab16[0])*100.L/65535.L;
 	lab[1] = double(lab16[1])*240.L/65535.L-120;
 	lab[2] = double(lab16[2])*240.L/65535.L-120;
@@ -221,17 +225,13 @@ static void int_to_lab(int lab16[3], double lab[3]) {
 
 
 
-static void RGB_to_CIELab16(int rgb[3], int lab16[3] ) {
+static void RGB_to_CIELab16(const quantum_t rgb[3], quantum_t lab16[3] ) {
 	double lab[3];
 	RGB_to_CIELab(rgb,lab);
 	lab_to_int(lab,lab16);
 }
 
-static void CIELab16_to_RGB(int lab16[3], int rgb[3] ) {
-
-        //MaxRGB is defined as Quantum which is not in scope
-        using MagickCore::Quantum; 
-
+static void CIELab16_to_RGB(const quantum_t lab16[3], quantum_t rgb[3] ) {
 	double lab[3];
 	int_to_lab(lab16,lab);
 	CIELab_to_RGB(lab,rgb);
@@ -316,19 +316,19 @@ __ret; })
         tmpf += rgb_xyz[0][1] * xyz[1]; \
         tmpf += rgb_xyz[0][2] * xyz[2]; \
         rgb[0] = ( tmpf<0?0:tmpf ) * 65535.0 + 0.5; \
-	if ( rgb[0] > signed(MaxRGB) ) rgb[0] = MaxRGB; \
+	if ( rgb[0] > QuantumRange ) rgb[0] = QuantumRange; \
         tmpf = 0; \
         tmpf += rgb_xyz[1][0] * xyz[0]; \
         tmpf += rgb_xyz[1][1] * xyz[1]; \
         tmpf += rgb_xyz[1][2] * xyz[2]; \
         rgb[1] = ( tmpf<0?0:tmpf ) * 65535.0 + 0.5; \
-	if ( rgb[1] > signed(MaxRGB) ) rgb[1] = MaxRGB; \
+	if ( rgb[1] > QuantumRange ) rgb[1] = QuantumRange; \
         tmpf = 0; \
         tmpf += rgb_xyz[2][0] * xyz[0]; \
         tmpf += rgb_xyz[2][1] * xyz[1]; \
         tmpf += rgb_xyz[2][2] * xyz[2]; \
         rgb[2] = ( tmpf<0?0:tmpf ) * 65535.0 + 0.5; \
-	if ( rgb[2] > signed(MaxRGB) ) rgb[2] = MaxRGB; \
+	if ( rgb[2] > QuantumRange ) rgb[2] = QuantumRange; \
 }
 
 

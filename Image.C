@@ -145,8 +145,9 @@ void makeThumbnail(const String& root, const String& tmp, const String& filename
 
      Magick::Image tmpImage = image;
 
-     const double kernel[]={0,-1,0,-1,8,-1,0,-1,0};
+     double kernel[]={0,-1,0,-1,8,-1,0,-1,0};
      //const double kernel[]={0,1,0,1,-4,1,0,1,0};
+     normalizeKernel(3, kernel);
      tmpImage.convolve(3,kernel);
      tmpImage.interlaceType(Magick::LineInterlace);
      tmpImage.quality(95);

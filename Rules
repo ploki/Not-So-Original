@@ -2,8 +2,8 @@ OFILES:=$(CFILES:.C=.o)
 
 
 %.o: %.C
-	@echo `RaiiBuild` `RaiiBuild --cplusplusflags` -fopenmp -c $< -o $@ -I/usr/include/exiv2 -I/usr/include/ImageMagick
-	@`RaiiBuild` `RaiiBuild --cplusplusflags` -fopenmp -c $< -o $@ -I/usr/include/exiv2 -I/usr/include/ImageMagick
+	@echo `RaiiBuild` `RaiiBuild --cplusplusflags` -fopenmp -c $< -o $@ -I/usr/include/exiv2 -I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6/ -DMAGICKCORE_HDRI_ENABLE=0 -DMAGICKCORE_QUANTUM_DEPTH=16
+	@`RaiiBuild` `RaiiBuild --cplusplusflags` -fopenmp -c $< -o $@ -I/usr/include/exiv2 -I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6/ -DMAGICKCORE_HDRI_ENABLE=0 -DMAGICKCORE_QUANTUM_DEPTH=16
 
 ifndef PROJECT
 all install clean:

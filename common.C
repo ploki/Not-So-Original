@@ -431,3 +431,14 @@ void updateDirDate(String root, String pathInfo, int year, int month, int day) {
         }
 }
 
+
+void normalizeKernel(int order, double *kernel)
+{
+  double div = 0;
+  int i;
+  int n = order * order;
+  for ( i = 0 ; i < n ; ++i )
+    div+=kernel[i];
+  for ( i = 0 ; i < n ; ++i )
+    kernel[i]/=div;
+}

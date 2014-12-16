@@ -111,20 +111,20 @@ static inline void unLabize(Image &image, Image &labImage);
 		else
 			p=(a+1.L)*pow(x0,1.L/gamma)/(gamma*x0);
 
-		unsigned int lut[MaxRGB+1];
+		quantum_t lut[QuantumRange+1];
 		#pragma omp parallel for
-		for ( int i = 0 ; i <= signed(MaxRGB) ; ++i ) {
-			double xx= double(i)/double(MaxRGB);
+		for ( unsigned int i = 0 ; i <= sizeof(lut)/sizeof(*lut) ; ++i ) {
+			double xx= double(i)/double(QuantumRange);
 			if ( xx > x0 ) {
 				if ( invert ) {
-					lut[i]=pow(((xx+a)/(a+1.L)),gamma)*MaxRGB;
+					lut[i]=pow(((xx+a)/(a+1.L)),gamma)*QuantumRange;
 				}
 				else {
-					lut[i]=((1.L+a)*pow(xx,(1.L/gamma))-a)*MaxRGB;
+					lut[i]=((1.L+a)*pow(xx,(1.L/gamma))-a)*QuantumRange;
 				}
 			}
 			else {
-				lut[i]=p*xx*double(MaxRGB);
+				lut[i]=p*xx*double(QuantumRange);
 			}
 		}
 		#pragma omp barrier
@@ -173,49 +173,16 @@ static inline void unLabize(Image &image, Image &labImage);
 				input_pixels[2] = input_cache.get(0,y+1,w,1);
 
 				for ( int x = 1 ; x < w-1 ; ++x ) {
-					int max_rgb[3]={0,0,0};
-					int min_rgb[3]={MaxRGB,MaxRGB,MaxRGB};
-					int sum_rgb[3]={0,0,0};
-					int rgb[3];
+					extended_quantum_t max_rgb[3]={0,0,0};
+					extended_quantum_t min_rgb[3]={QuantumRange,QuantumRange,QuantumRange};
+					extended_quantum_t sum_rgb[3]={0,0,0};
+					extended_quantum_t rgb[3];
+					extended_quantum_t nrgb[3];
+					extended_quantum_t other_channels=0;
 
 					rgb[0]=input_pixels[1][x].red;
 					rgb[1]=input_pixels[1][x].green;
 					rgb[2]=input_pixels[1][x].blue;
-/*
-					for ( int j = -1 ; j < 2 ; ++j ) for ( int i = -1 ; i < 2 ; ++i ) {
-						if ( i == 0 && j == 0 ) continue;
-
-						int nrgb[3];
-
-						nrgb[0]=input_pixels[j+1][x+i].red;
-						nrgb[1]=input_pixels[j+1][x+i].green;
-						nrgb[2]=input_pixels[j+1][x+i].blue;
-						for ( int q = 0 ; q < 3 ; ++q ) {
-							if ( !naive ) {
-								if ( nrgb[q] > max_rgb[q] ) max_rgb[q] = nrgb[q];
-								if ( nrgb[q] < min_rgb[q] ) min_rgb[q] = nrgb[q];
-							}
-							sum_rgb[q]+=nrgb[q];
-						}
-					}
-
-					for ( int q = 0 ; q < 3 ; ++q ) {
-						int other_channels = 0;
-						if ( !aggressive )
-							other_channels = (rgb[(q-1)%3]+rgb[(q+1)%3])/2;
-						if ( naive ) {
-							sum_rgb[q]/=8;
-						}
-						else {
-							sum_rgb[q]-=(max_rgb[q]+min_rgb[q]);
-							sum_rgb[q]/=6;
-						}
-						if ( sum_rgb[q]*delta < rgb[q] && ( aggressive || other_channels*delta < rgb[q] ) ) rgb[q]=sum_rgb[q];
-						if ( sum_rgb[q]/delta > rgb[q] && ( aggressive || other_channels/delta > rgb[q] ) ) rgb[q]=sum_rgb[q];
-					}
-*/
-
-//loops unroll
 
 					#define color_op_naive(q) \
 							sum_rgb[q]+=nrgb[q];
@@ -264,9 +231,6 @@ static inline void unLabize(Image &image, Image &labImage);
 						if ( sum_rgb[q]*delta < rgb[q] ) rgb[q]=sum_rgb[q]; \
 						if ( sum_rgb[q]/delta > rgb[q] ) rgb[q]=sum_rgb[q];
 
-					int nrgb[3];
-					int other_channels=0;
-
 					if ( naive ) {
 						loop_code_naive(-1,-1); loop_code_naive(-1, 0); loop_code_naive(-1, 1);
 						loop_code_naive( 0,-1);                         loop_code_naive( 0, 1);
@@ -305,9 +269,9 @@ static inline void unLabize(Image &image, Image &labImage);
 //end of loops unroll
 
 
-					output_pixels[x].red=rgb[0];
-					output_pixels[x].green=rgb[1];
-					output_pixels[x].blue=rgb[2];
+					output_pixels[x].red=rgb[0]>QuantumRange?QuantumRange:rgb[0];
+					output_pixels[x].green=rgb[1]>QuantumRange?QuantumRange:rgb[1];
+					output_pixels[x].blue=rgb[2]>QuantumRange?QuantumRange:rgb[2];
 
 				}
 			}
@@ -702,8 +666,8 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 		if ( mod("discrete").toi() ) {
 			double discrete=mod("discrete").tof();
 			for(int i=0; i < 65536 ; ++i) {
-				unsigned int c = pow(2., 16. - floor( -discrete*log(double(i)/MaxRGB)/log(2) )/discrete );
-				if (c > MaxRGB) c=MaxRGB;
+				quantum_t c = pow(2., 16. - floor( -discrete*log(double(i)/QuantumRange)/log(2) )/discrete );
+				if (c > QuantumRange) c=QuantumRange;
 				pixels[i].red=pixels[i].green=pixels[i].blue=c;
 			}
 		}
@@ -983,8 +947,8 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 		if ( mod("discrete").toi() ) {
 			double discrete=mod("discrete").tof();
 			for(int i=0; i < 65536 ; ++i) {
-				unsigned int c = pow(2., 16. - floor( -discrete*log(double(i)/MaxRGB)/log(2) )/discrete );
-				if (c > MaxRGB) c=MaxRGB;
+				quantum_t c = pow(2., 16. - floor( -discrete*log(double(i)/QuantumRange)/log(2) )/discrete );
+				if (c > QuantumRange) c=QuantumRange;
 				pixels[i].red=pixels[i].green=pixels[i].blue=c;
 			}
 		}
@@ -1098,8 +1062,12 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	}
         void doJob() {
 	  bool lab=mod("lab").toi()!=0;
-            const double kernel[]={0,-1,0,-1,8,-1,0,-1,0};
+
+            double kernel[]={ 0 , -1.,  0,
+			     -1.,  8., -1.,
+			      0 , -1.,  0};
             Profile prof("MicroContrasts");
+	    normalizeKernel(3, kernel);
 	    if (!lab)
 	      {
 		image.convolve(3,kernel);
@@ -1231,14 +1199,14 @@ void Labize(Image &image, Image &labImage) {
 			PixelPacket *labpixels = lab_cache.get(0,y,w,1);
 			if ( !pixels || !labpixels ) continue;
                     for (int x = 0 ; x < w ; ++x ) {
-                        int rgb[3];
+		        quantum_t rgb[3];
                         rgb[0]=pixels[x].red;
                         rgb[1]=pixels[x].green;
                         rgb[2]=pixels[x].blue;
-                        int lab[3];
+                        quantum_t lab[3];
                         RGB_to_CIELab16(rgb,lab);
-//                        int l=  int( lab[0] * ( double(MaxRGB)/100.L ) );
-//                        l= l<0?0:(l>signed(MaxRGB)?MaxRGB:l);
+//                        int l=  int( lab[0] * ( double(QuantumRange)/100.L ) );
+//                        l= l<0?0:(l>signed(QuantumRange)?QuantumRange:l);
 			labpixels[x].red=
 			labpixels[x].green=
 			labpixels[x].blue=lab[0];
@@ -1264,24 +1232,24 @@ void unLabize(Image &image, Image &labImage) {
 			PixelPacket *labpixels = lab_cache.get(0,y,w,1);
 			if ( !pixels || !labpixels ) continue;
                     for (int x = 0 ; x < w ; ++x ) {
-                        int rgb[3];
+                        quantum_t rgb[3];
 			//triplé rgb de l'image d'origine
 
                         rgb[0]=pixels[x].red;
                         rgb[1]=pixels[x].green;
                         rgb[2]=pixels[x].blue;
 			//conversion du triplé de rgb ver Lab
-                        int lab[3];
+                        quantum_t lab[3];
                         RGB_to_CIELab16(rgb,lab);
-                        int l=labpixels[x].red;
-//                        lab[0]= l / ( double(MaxRGB)/100.L ) ;
+                        quantum_t l=labpixels[x].red;
+//                        lab[0]= l / ( double(QuantumRange)/100.L ) ;
 
 			//copie du L de l'image lab vers le L de l'image RGB
                         lab[0]=l;
                         CIELab16_to_RGB(lab,rgb);
-//                        rgb[0]=rgb[0]>signed(MaxRGB)?MaxRGB:rgb[0];
-//                        rgb[1]=rgb[1]>signed(MaxRGB)?MaxRGB:rgb[1];
-//                        rgb[2]=rgb[2]>signed(MaxRGB)?MaxRGB:rgb[2];
+//                        rgb[0]=rgb[0]>signed(QuantumRange)?QuantumRange:rgb[0];
+//                        rgb[1]=rgb[1]>signed(QuantumRange)?QuantumRange:rgb[1];
+//                        rgb[2]=rgb[2]>signed(QuantumRange)?QuantumRange:rgb[2];
 			pixels[x].red=rgb[0];
 			pixels[x].green=rgb[1];
 			pixels[x].blue=rgb[2];
@@ -1352,8 +1320,8 @@ void unLabize(Image &image, Image &labImage) {
 		iGamma(image,imageInfo.gamma,imageInfo.non_linear_range,true); //  g -> linear
 		iGamma(curve,imageInfo.gamma,imageInfo.non_linear_range,true); //  g -> linear
             if (!lab) {
-                    image.sigmoidalContrast(mod("sharpen").toi(),mod("contrast").tof(),MaxRGB/mod("mpdiv").tof());
-                    curve.sigmoidalContrast(mod("sharpen").toi(),mod("contrast").tof(),MaxRGB/mod("mpdiv").tof());
+                    image.sigmoidalContrast(mod("sharpen").toi(),mod("contrast").tof(),QuantumRange/mod("mpdiv").tof());
+                    curve.sigmoidalContrast(mod("sharpen").toi(),mod("contrast").tof(),QuantumRange/mod("mpdiv").tof());
 		}
             else {
                 //in lab colorspace
@@ -1362,7 +1330,7 @@ void unLabize(Image &image, Image &labImage) {
 		iGamma(labImage,LAB_G,LAB_N,true); // lab -> linear
 
 
-                labImage.sigmoidalContrast(mod("sharpen").toi(),mod("contrast").tof(),MaxRGB/mod("mpdiv").tof());
+                labImage.sigmoidalContrast(mod("sharpen").toi(),mod("contrast").tof(),QuantumRange/mod("mpdiv").tof());
 
 		iGamma(labImage,LAB_G,LAB_N,false); // linear -> lab
                 unLabize(image,labImage);
@@ -1411,29 +1379,27 @@ void unLabize(Image &image, Image &labImage) {
 			#define func_f(x) ((tanh(2*x/(log(pow(2,IL_W))/log(10))+1.L)-1.L-(tanh(1)-1.L))*log(pow(2,IL_H))/log(10)/2)
 			#define func_g(x) pow(10,func_f(log(x)/log(10)))
 			#define func_h(x) func_g(pow(x,16.L/dynamic_range))
-			unsigned int lut[MaxRGB+1];
+			quantum_t lut[QuantumRange+1];
 	//		double lx=pow(10,-5);
 			bool stop=false;
-			unsigned int i = MaxRGB + 1 ;
-			do {
-				--i;
-				double xx=double(i)/double(MaxRGB);
-				lut[i]=func_h(xx)*MaxRGB;
+			for ( int i = QuantumRange ; i >= 0 ; --i ) {
+				double xx=double(i)/double(QuantumRange);
+				lut[i]=func_h(xx)*QuantumRange;
 				//afin d'éviter que le sin ne remonte
 				if ( stop )
 					lut[i]=lut[i+1];
-				else if ( i!=MaxRGB && lut[i] > lut[i+1] ) {
+				else if ( i!=QuantumRange && lut[i] > lut[i+1] ) {
 					stop=true;
 					lut[i]=lut[i+1];
 				}
-			} while ( i > 0 );
+			}
 
 
 
 			//fait en sorte que le pied soit toujours <=  la droite y=x afin de conserver le point noir
 			//valable pour plage dynamique <= 13 car au delà, la courbe est toujours sup
 			if ( dynamic_range <= 13.L && mod("linear_extinction").toi() != 0 )
-				for (i=0; i<=MaxRGB ; ++i) {
+			  for (unsigned int i=0; i<sizeof(lut)/sizeof(*lut) ; ++i) {
 					if ( lut[i] > i ) lut[i]=i;
 					else break;
 				}
@@ -1447,7 +1413,7 @@ void unLabize(Image &image, Image &labImage) {
 			bool lab=mod("lab").toi();
 			int channels = mod("channels").toi();
 
-		unsigned int h = image.rows(),
+			int h = image.rows(),
 				w = image.columns();
 
 
@@ -1458,20 +1424,20 @@ void unLabize(Image &image, Image &labImage) {
 		Pixels pixel_cache(image);
 
 	#pragma omp parallel for
-                for ( int y = 0 ; (unsigned int)y < h ; ++y ) {
+                for ( int y = 0 ; y < h ; ++y ) {
 			PixelPacket *pixels = pixel_cache.get(0,y,w,1);
 			if ( ! pixels ) {
 				continue;
 			}
-                    for (unsigned int x = 0 ; x < w ; ++x ) {
+                    for (int x = 0 ; x < w ; ++x ) {
 
 			if ( lab ) {
-				int rgb[3]={pixels[x].red,pixels[x].green,pixels[x].blue};
+			        quantum_t rgb[3]={pixels[x].red,pixels[x].green,pixels[x].blue};
 				double lab[3];
 				double v;
 				RGB_to_CIELab(rgb,lab);
 				v= lab_linearize(lab[0]);
-				v =  double(lut[int(v*MaxRGB)])/MaxRGB;
+				v =  double(lut[int(v*QuantumRange)])/QuantumRange;
 				lab[0] = lab_gammaize(v);
 				CIELab_to_RGB(lab,rgb);
 				pixels[x].red=rgb[0];
@@ -1556,39 +1522,37 @@ void unLabize(Image &image, Image &labImage) {
 //			#define func_f(x) ((tanh(2*x/(log(pow(2,IL_W))/log(10))+1.L)-1.L-(tanh(1)-1.L))*log(pow(2,IL_H))/log(10)/2)
 			#define func_f(x) ((tanh((val*.30103)+2*x/(log(pow(2,IL_W))/log(10))+1.L)-1.L-(tanh(1+(val*.30103))-1.L))*log(pow(2,IL_H))/log(10)/2)
 			#define func_g(x) pow(10,func_f(log(x)/log(10)))
-			unsigned int lutr[MaxRGB+1],lutg[MaxRGB+1],lutb[MaxRGB+1];
+			quantum_t lutr[QuantumRange+1],lutg[QuantumRange+1],lutb[QuantumRange+1];
 	//		double lx=pow(10,-5);
 	                double val = mod("val").tof()/pow(2.,log(dynamic_range)/log(2.)-3.);
 			bool stopr=false,stopg=false,stopb=false;
-			unsigned int i = MaxRGB + 1 ;
-			do {
-				--i;
-				double xx=double(i)/double(MaxRGB);
-				lutr[i]=func_g(pow(xx,16.L/(dynamic_range+red_diff)))*MaxRGB;
-				lutg[i]=func_g(pow(xx,16.L/dynamic_range))*MaxRGB;
-				lutb[i]=func_g(pow(xx,16.L/(dynamic_range+blue_diff)))*MaxRGB;
+			for ( int i = QuantumRange ; i >= 0 ; --i ) {
+				double xx=double(i)/double(QuantumRange);
+				lutr[i]=func_g(pow(xx,16.L/(dynamic_range+red_diff)))*QuantumRange;
+				lutg[i]=func_g(pow(xx,16.L/dynamic_range))*QuantumRange;
+				lutb[i]=func_g(pow(xx,16.L/(dynamic_range+blue_diff)))*QuantumRange;
 
 				//afin d'éviter que le sin ne remonte
 				if ( stopr )
 					lutr[i]=lutr[i+1];
-				else if ( i!=MaxRGB && lutr[i] > lutr[i+1] ) {
+				else if ( i!=QuantumRange && lutr[i] > lutr[i+1] ) {
 					stopr=true;
 					lutr[i]=lutr[i+1];
 				}
 				if ( stopg )
 					lutg[i]=lutg[i+1];
-				else if ( i!=MaxRGB && lutg[i] > lutg[i+1] ) {
+				else if ( i!=QuantumRange && lutg[i] > lutg[i+1] ) {
 					stopg=true;
 					lutg[i]=lutg[i+1];
 				}
 				if ( stopb )
 					lutb[i]=lutb[i+1];
-				else if ( i!=MaxRGB && lutb[i] > lutb[i+1] ) {
+				else if ( i!=QuantumRange && lutb[i] > lutb[i+1] ) {
 					stopb=true;
 					lutb[i]=lutb[i+1];
 				}
 
-			} while ( i > 0 );
+			}
 
 
 
@@ -1602,8 +1566,8 @@ void unLabize(Image &image, Image &labImage) {
 
 			bool lab=mod("lab").toi();
 
-		unsigned int h = image.rows(),
-				w = image.columns();
+			int h = image.rows(),
+			  w = image.columns();
 
 		Pixels *pixel_cache;
 		iGamma(image,imageInfo.gamma,imageInfo.non_linear_range,true); //  g -> linear
@@ -1620,13 +1584,13 @@ void unLabize(Image &image, Image &labImage) {
 			pixel_cache= new Pixels(image);
 		}
 #pragma omp parallel for
-                for ( int y = 0 ; (unsigned int)y < h ; ++y ) {
+                for ( int y = 0 ; y < h ; ++y ) {
 			PixelPacket *pixels = pixel_cache->get(0,y,w,1);
 			if ( ! pixels ) {
 				continue;
 				//throw ServletException("pixel packet array is null");
 			}
-                    for (unsigned int x = 0 ; x < w ; ++x ) {
+                    for (int x = 0 ; x < w ; ++x ) {
                         //Magick::Color col = image.pixelColor(x,y);
                         //Magick::Color col = pixels[x];
                         //int rgb[3];
@@ -1823,7 +1787,7 @@ void unLabize(Image &image, Image &labImage) {
 	}
 	void doJob() {
                 Profile prof("ZoneSystem");
-		unsigned int x,y;
+		int x,y;
 		//correction du gamma d'entrée
 
 		//iGamma(image,imageInfo.gamma,imageInfo.non_linear_range,true);
@@ -1839,42 +1803,44 @@ void unLabize(Image &image, Image &labImage) {
 				int //r=col.redQuantum(),
 				    g=col.greenQuantum();
 				    //b=col.blueQuantum();
-				        if ( g >= int(double(MaxRGB)*M_SQRT1_2l) ) image.pixelColor(x,y,Color(MaxRGB,MaxRGB,0,0));			//cramé
-					else if ( g & (1<<15) ) image.pixelColor(x,y,Color(MaxRGB/1,MaxRGB/1,MaxRGB/1,0));	//VIII	32768	->	65535		50-100%		12b  +3
-					else if ( g & (1<<14) ) image.pixelColor(x,y,Color(0*MaxRGB/2,MaxRGB/2,MaxRGB/2,0));	//VII	16384	->	32767		25-50%		11b  +2
-					else if ( g & (1<<13) ) image.pixelColor(x,y,Color(0*MaxRGB/4,MaxRGB/4,MaxRGB/4,0));	//VI	8192	->	16383		13-25%		10b  +1
-					else if ( g & (1<<12) ) image.pixelColor(x,y,Color(0*MaxRGB/8,MaxRGB/8,0*MaxRGB/8,0));	//V	4096	->	8191		6-13%		9b
-					else if ( g & (1<<11) ) image.pixelColor(x,y,Color(MaxRGB/16,MaxRGB/16,MaxRGB/16,0));	//IV	2048	->	4095		3-6%		8b   -1
-					else if ( g & (1<<10) ) image.pixelColor(x,y,Color(MaxRGB/32,MaxRGB/32,MaxRGB/32,0));	//III	1024	->	2047		1.5-3%		7b   -2
-					else if ( g & (1<<9) ) image.pixelColor(x,y,Color(MaxRGB/64,MaxRGB/64,MaxRGB/64,0));	//II	512	->	1024		0.75-1.5%	6b   -3
-					else if ( g & (1<<8) ) image.pixelColor(x,y,Color(MaxRGB/128,MaxRGB/128,MaxRGB/128,0));	//I	256	->	511		0.4-0.75%	5b   -4
-//					else if ( g & (1<<7) ) image.pixelColor(x,y,Color(MaxRGB/256,MaxRGB/256,MaxRGB/256,0));	//0
-					else image.pixelColor(x,y,Color(MaxRGB,0,0,0));						//bouché                                                     -5
+				        if ( g >= int(double(QuantumRange)*M_SQRT1_2l) ) image.pixelColor(x,y,Color(QuantumRange,QuantumRange,0,0));			//cramé
+					else if ( g & (1<<15) ) image.pixelColor(x,y,Color(QuantumRange/1,QuantumRange/1,QuantumRange/1,0));	//VIII	32768	->	65535		50-100%		12b  +3
+					else if ( g & (1<<14) ) image.pixelColor(x,y,Color(0*QuantumRange/2,QuantumRange/2,QuantumRange/2,0));	//VII	16384	->	32767		25-50%		11b  +2
+					else if ( g & (1<<13) ) image.pixelColor(x,y,Color(0*QuantumRange/4,QuantumRange/4,QuantumRange/4,0));	//VI	8192	->	16383		13-25%		10b  +1
+					else if ( g & (1<<12) ) image.pixelColor(x,y,Color(0*QuantumRange/8,QuantumRange/8,0*QuantumRange/8,0));	//V	4096	->	8191		6-13%		9b
+					else if ( g & (1<<11) ) image.pixelColor(x,y,Color(QuantumRange/16,QuantumRange/16,QuantumRange/16,0));	//IV	2048	->	4095		3-6%		8b   -1
+					else if ( g & (1<<10) ) image.pixelColor(x,y,Color(QuantumRange/32,QuantumRange/32,QuantumRange/32,0));	//III	1024	->	2047		1.5-3%		7b   -2
+					else if ( g & (1<<9) ) image.pixelColor(x,y,Color(QuantumRange/64,QuantumRange/64,QuantumRange/64,0));	//II	512	->	1024		0.75-1.5%	6b   -3
+					else if ( g & (1<<8) ) image.pixelColor(x,y,Color(QuantumRange/128,QuantumRange/128,QuantumRange/128,0));	//I	256	->	511		0.4-0.75%	5b   -4
+//					else if ( g & (1<<7) ) image.pixelColor(x,y,Color(QuantumRange/256,QuantumRange/256,QuantumRange/256,0));	//0
+					else image.pixelColor(x,y,Color(QuantumRange,0,0,0));						//bouché                                                     -5
 
 		}
 		*/
 
-		int max=0;
-		for ( y = 0 ; y < image.rows() ; ++y )
-			for ( x = 0 ; x < image.columns() ; ++x ) {
+		quantum_t max=0;
+		int w = image.columns(),
+		  h = image.rows();
+		for ( y = 0 ; y < h ; ++y )
+			for ( x = 0 ; x < w ; ++x ) {
 				Magick::Color col = image.pixelColor(x,y);
-				int //r=col.redQuantum(),
+				quantum_t //r=col.redQuantum(),
 					//Y de l'espace XYZ
 				    g=(0.299*col.redQuantum()+0.587*col.greenQuantum()+0.114*col.blueQuantum());
 					if ( g > max ) max=g;
 				    //b=col.blueQuantum();
-				        if ( (unsigned int)g >= ( MaxRGB - 2 ) ) image.pixelColor(x,y,Color(MaxRGB,MaxRGB,0,0));	//VIII	cramé				+2.5 cramé
-					else if ( g & (1<<15) ) image.pixelColor(x,y,Color(MaxRGB/1,MaxRGB/1,MaxRGB/1,0));		//VII	50-100%		12b  +2.5-+1.5	+2
-					else if ( g & (1<<14) ) image.pixelColor(x,y,Color(0*MaxRGB/2, MaxRGB/2,  MaxRGB/2,0));		//VI	25-50%		11b  +1.5-+0.5	+1   peau
+				        if ( g >= ( QuantumRange - 2 ) ) image.pixelColor(x,y,Color(QuantumRange,QuantumRange,0,0));	//VIII	cramé				+2.5 cramé
+					else if ( g & (1<<15) ) image.pixelColor(x,y,Color(QuantumRange/1,QuantumRange/1,QuantumRange/1,0));		//VII	50-100%		12b  +2.5-+1.5	+2
+					else if ( g & (1<<14) ) image.pixelColor(x,y,Color(0*QuantumRange/2, QuantumRange/2,  QuantumRange/2,0));		//VI	25-50%		11b  +1.5-+0.5	+1   peau
 
-					else if ( g & (1<<13) ) image.pixelColor(x,y,Color(0*MaxRGB/4, MaxRGB/4,0*MaxRGB/4,0));		//V	12-25%		10b  +0.5--0.5	 0   ciel bleu du nord
+					else if ( g & (1<<13) ) image.pixelColor(x,y,Color(0*QuantumRange/4, QuantumRange/4,0*QuantumRange/4,0));		//V	12-25%		10b  +0.5--0.5	 0   ciel bleu du nord
 
-					else if ( g & (1<<12) ) image.pixelColor(x,y,Color(  MaxRGB/8, MaxRGB/8,  MaxRGB/8,0));		//IV	6-12%		9b   -0.5--1.5	-1
-					else if ( g & (1<<11) ) image.pixelColor(x,y,Color(0*MaxRGB/16,0*MaxRGB/16, 3*MaxRGB/16,0));	//III	3-6%		8b   -1.5--2.5	-2   ombres
-					else if ( g & (1<<10) ) image.pixelColor(x,y,Color(  MaxRGB/32,MaxRGB/32, MaxRGB/32,0));	//II	1.5-3%		7b   -2.5--3.5	-3   noirs
-					else if ( g & (1<<9) ) image.pixelColor(x,y,Color(  MaxRGB/64,MaxRGB/64, MaxRGB/32,0));		//I	0.75-1.5%	6b   -3.5--4.5	-4
-					else if ( g & (1<<8) ) image.pixelColor(x,y,Color(  MaxRGB/128,MaxRGB/128, MaxRGB/128,0));	//0	0.37-0.75%	5b   -4.5--5.5	-5
-					else image.pixelColor(x,y,Color(0*MaxRGB,0,0,0));							//neg	0.75-1.5%	4b   -5.5- 	-6   bouché
+					else if ( g & (1<<12) ) image.pixelColor(x,y,Color(  QuantumRange/8, QuantumRange/8,  QuantumRange/8,0));		//IV	6-12%		9b   -0.5--1.5	-1
+					else if ( g & (1<<11) ) image.pixelColor(x,y,Color(0*QuantumRange/16,0*QuantumRange/16, 3*QuantumRange/16,0));	//III	3-6%		8b   -1.5--2.5	-2   ombres
+					else if ( g & (1<<10) ) image.pixelColor(x,y,Color(  QuantumRange/32,QuantumRange/32, QuantumRange/32,0));	//II	1.5-3%		7b   -2.5--3.5	-3   noirs
+					else if ( g & (1<<9) ) image.pixelColor(x,y,Color(  QuantumRange/64,QuantumRange/64, QuantumRange/32,0));		//I	0.75-1.5%	6b   -3.5--4.5	-4
+					else if ( g & (1<<8) ) image.pixelColor(x,y,Color(  QuantumRange/128,QuantumRange/128, QuantumRange/128,0));	//0	0.37-0.75%	5b   -4.5--5.5	-5
+					else image.pixelColor(x,y,Color(0*QuantumRange,0,0,0));							//neg	0.75-1.5%	4b   -5.5- 	-6   bouché
 
 		}
 
@@ -1896,15 +1862,17 @@ void unLabize(Image &image, Image &labImage) {
             //image.scale(Magick::Geometry(256,768));
 	    bool adt = mod("adt").toi()?true:false;
 	    bool hlog = mod("log").toi()?true:false;
-        unsigned int x,y;
+        int x,y;
+	int w = image.columns(),
+	  h = image.rows();
 
-        int     histo[256][3]={{0}},
+        quantum_t     histo[256][3]={{0}},
                 maxi=0;
 
-            for ( y = 0 ; y < image.rows() ; ++y )
-                for ( x = 0 ; x < image.columns() ; ++x ) {
+            for ( y = 0 ; y < h ; ++y )
+                for ( x = 0 ; x < w ; ++x ) {
                 Magick::Color col = image.pixelColor(x,y);
-                unsigned int r=col.redQuantum()/257,
+                quantum_t r=col.redQuantum()/257,
                     g=col.greenQuantum()/257,
                     b=col.blueQuantum()/257;
                     ++(histo[r][0]);
@@ -1948,36 +1916,36 @@ void unLabize(Image &image, Image &labImage) {
 	if ( qb == 0 && histo[x][2] > 0 ) qb=1;
 #if 0
                 for (int i = 0 ; i < qr ; ++i )
-                        image.pixelColor(x,255-i+0*256,Color(MaxRGB,0,0,0));
+                        image.pixelColor(x,255-i+0*256,Color(QuantumRange,0,0,0));
                 for (int i = 0 ; i < qg ; ++i )
-                        image.pixelColor(x,255-i+1*256,Color(0,MaxRGB,0,0));
+                        image.pixelColor(x,255-i+1*256,Color(0,QuantumRange,0,0));
                 for (int i = 0 ; i < qb ; ++i )
-                        image.pixelColor(x,255-i+2*256,Color(0,0,MaxRGB,0));
+                        image.pixelColor(x,255-i+2*256,Color(0,0,QuantumRange,0));
 		if ( x == 188 || x == 137 || x == 99 || x == 71
 		     || x == 49 || x == 34 || x == 22 || x == 13 || x == 6 )
 			for (int i = 0 ; i < 256*3 ; ++ i )
-				image.pixelColor(x,i,Color(MaxRGB,MaxRGB,MaxRGB,0));
+				image.pixelColor(x,i,Color(QuantumRange,QuantumRange,QuantumRange,0));
 #else
                 for (int i = 0 ; i < qr ; ++i )
 		  {
 		    Magick::Color col = image.pixelColor(x,255-i);    
-		    image.pixelColor(x,255-i,Color(MaxRGB,col.greenQuantum(),col.blueQuantum(),0));
+		    image.pixelColor(x,255-i,Color(QuantumRange,col.greenQuantum(),col.blueQuantum(),0));
 		  }
                 for (int i = 0 ; i < qg ; ++i )
 		  {
 		    Magick::Color col = image.pixelColor(x,255-i);    
-		    image.pixelColor(x,255-i,Color(col.redQuantum(),MaxRGB,col.blueQuantum(),0));
+		    image.pixelColor(x,255-i,Color(col.redQuantum(),QuantumRange,col.blueQuantum(),0));
 		  }
                 for (int i = 0 ; i < qb ; ++i )
 		  {
 		    Magick::Color col = image.pixelColor(x,255-i);    
-		    image.pixelColor(x,255-i,Color(col.redQuantum(),col.greenQuantum(),MaxRGB,0));
+		    image.pixelColor(x,255-i,Color(col.redQuantum(),col.greenQuantum(),QuantumRange,0));
 		  }
 		if ( x == 188 || x == 137 || x == 99 || x == 71
 		     || x == 49 || x == 34 || x == 22 || x == 13 || x == 6 )
 		        //for (int i = 0 ; i < 256*3 ; ++ i )
 			for (int i = 0 ; i < 256 ; ++ i )
-				image.pixelColor(x,i,Color(MaxRGB,MaxRGB,MaxRGB,0));
+				image.pixelColor(x,i,Color(QuantumRange,QuantumRange,QuantumRange,0));
 #endif
             }
 	    if ( adt )
@@ -2016,17 +1984,17 @@ void unLabize(Image &image, Image &labImage) {
 				int y = h/2+((r[x]))/256/*-h/4*/;
 				if ( y >= h ) y=h-1;if ( y < 0 ) y=0;
 
-				image.pixelColor(x,y,Color(MaxRGB,0,0,0));
+				image.pixelColor(x,y,Color(QuantumRange,0,0,0));
 
 				y = h/2+((g[x]))/256;
 				if ( y >= h ) y=h-1;if ( y < 0 ) y=0;
 				Magick::Color c = image.pixelColor(x,y);
-				image.pixelColor(x,y,Color(c.redQuantum(),MaxRGB,c.blueQuantum(),0));
+				image.pixelColor(x,y,Color(c.redQuantum(),QuantumRange,c.blueQuantum(),0));
 
 				y = h/2+((b[x]))/256/*+h/4*/;
 				if ( y >= h ) y=h-1;if ( y < 0 ) y=0;
 				c = image.pixelColor(x,y);
-				image.pixelColor(x,y,Color(c.redQuantum(),c.greenQuantum(),MaxRGB,0));
+				image.pixelColor(x,y,Color(c.redQuantum(),c.greenQuantum(),QuantumRange,0));
 			}
 		}
 
@@ -2087,7 +2055,7 @@ void unLabize(Image &image, Image &labImage) {
 
 		//lignes verticales (entrée)
 		for ( int x = 32 ; x < 512 ; x+=32 ) {
-			int c=MaxRGB/4;
+			int c=QuantumRange/4;
 			if ( x == 512 - 3*32 ) c*=2;
 		//	if ( x == 512 - 9*32 ) c*=2;
 			if ( x == 512 - 12*32 ) c*=1.5;
@@ -2098,7 +2066,7 @@ void unLabize(Image &image, Image &labImage) {
 
 		//lignes horizontales (sortie)
 		for ( int il = 1; il < 16 ; ++il ) {
-			int c=MaxRGB/4;
+			int c=QuantumRange/4;
 			if ( il == 3 ) c*=2;
 			if ( il == 9 ) c*=2;   //limite pratique
 			if ( il == 12 ) c*=1.5; //limite theorique
@@ -2145,17 +2113,17 @@ void unLabize(Image &image, Image &labImage) {
 					break;
 				case 1: // lineaire
 				case 2: { //log-2
-					double  v = double(col.redQuantum()+1)/double(MaxRGB+1);
+					double  v = double(col.redQuantum()+1)/double(QuantumRange+1);
 						v = log(v)/log(2);
 					yr=  (16.L+v)*32.L-1.L;
 					if ( yr < 0 ) yr = 0;
 					else if ( yr > 511 ) yr = 511;
-						v = double(col.greenQuantum()+1)/double(MaxRGB+1);
+						v = double(col.greenQuantum()+1)/double(QuantumRange+1);
 						v = log(v)/log(2);
 					yg=  (16.L+v)*32.L-1.L;
 					if ( yg < 0 ) yg = 0;
 					else if ( yg > 511 ) yg = 511;
-						v = double(col.blueQuantum()+1)/double(MaxRGB+1);
+						v = double(col.blueQuantum()+1)/double(QuantumRange+1);
 						v = log(v)/log(2);
 					yb=  (16.L+v)*32.L-1.L;
 					if ( yb < 0 ) yb = 0;
@@ -2169,13 +2137,13 @@ void unLabize(Image &image, Image &labImage) {
 			else if ( i > 511 ) i = 511;
 			Magick::Color colr = image.pixelColor(i,yr);
 			image.pixelColor(i,yr,
-				Color(MaxRGB,colr.greenQuantum(),colr.blueQuantum(),0));
+				Color(QuantumRange,colr.greenQuantum(),colr.blueQuantum(),0));
 			Magick::Color colg = image.pixelColor(i,yg);
 			image.pixelColor(i,yg,
-				Color(colg.redQuantum(),MaxRGB,colg.blueQuantum(),0));
+				Color(colg.redQuantum(),QuantumRange,colg.blueQuantum(),0));
 			Magick::Color colb = image.pixelColor(i,yb);
 			image.pixelColor(i,yb,
-				Color(colb.redQuantum(),colb.greenQuantum(),MaxRGB,0));
+				Color(colb.redQuantum(),colb.greenQuantum(),QuantumRange,0));
 		}
 
 /*
@@ -2184,7 +2152,7 @@ void unLabize(Image &image, Image &labImage) {
 		int c = col.redQuantum();
 			image.pixelColor(x,
 				c/128,
-			Color(MaxRGB,MaxRGB,MaxRGB,0));
+			Color(QuantumRange,QuantumRange,QuantumRange,0));
 		}
 */
 		image.flip();
@@ -2192,11 +2160,13 @@ void unLabize(Image &image, Image &labImage) {
 	};
 
     class Linearize: public Operator {
-        static int logize(int bias, double mul, int i) {
-	int ret =  int(log(double(i)/double(bias))/log(2.L)*mul)+1;
-            if ( ret > signed(MaxRGB)) return MaxRGB;
-            if ( ret < 0 ) return 0;
-            return ret;
+        static quantum_t logize(int bias, double mul, int i) {
+	  long long int ret =
+	    log(double(i)/double(bias))/log(2.L)*mul;
+	  ret+=1;
+	  if ( ret > QuantumRange) return QuantumRange;
+	  if ( ret < 0 ) return 0;
+	  return quantum_t(ret);
         }
         public:
         Linearize(int i, ptr<Operator> lop) : Operator("linearize",i,lop) {
@@ -2223,19 +2193,19 @@ plot [t=0:65535] [0:65535] \
 
 #wcalc
 il = 9
-MaxRGB = 65535
-bias = ((MaxRGB+1)/(2**il))-1
-mul = MaxRGB/(ln(MaxRGB/bias)/ln(2))
-i= MaxRGB/8
-gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
+QuantumRange = 65535
+bias = ((QuantumRange+1)/(2**il))-1
+mul = QuantumRange/(ln(QuantumRange/bias)/ln(2))
+i= QuantumRange/8
+gamma = ln(((ln(i/bias)/ln(2))*mul)/QuantumRange)/ln(0.5)
 
             */
 		imageInfo.gamma=SRGB_G;
 		imageInfo.non_linear_range=SRGB_N;
             int x,y;
             double il=mod("dynamic_range").tof();
-            double bias=((MaxRGB+1)/(pow(2.L,il)))-1;
-            double mul = double(MaxRGB)/(log(double(MaxRGB)/bias)/log(2.L));
+            double bias=((QuantumRange+1)/(pow(2.L,il)))-1;
+            double mul = double(QuantumRange)/(log(double(QuantumRange)/bias)/log(2.L));
 	    bool lab=mod("lab").toi();
 
 		int h = image.rows(),
@@ -2286,8 +2256,8 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
 	curve_cache.sync();
 
 		if ( mod("restore_gp").toi() == 1 ) {
-                    image.level(0,MaxRGB,log(double(logize(bias,mul,MaxRGB/8))/double(MaxRGB))/log(0.5));
-                    curve.level(0,MaxRGB,log(double(logize(bias,mul,MaxRGB/8))/double(MaxRGB))/log(0.5));
+                    image.level(0,QuantumRange,log(double(logize(bias,mul,QuantumRange/8))/double(QuantumRange))/log(0.5));
+                    curve.level(0,QuantumRange,log(double(logize(bias,mul,QuantumRange/8))/double(QuantumRange))/log(0.5));
 		}
         }
     };
@@ -2306,16 +2276,16 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
 
 		image.modulate(mod("value").tof(),100,100);
 		double blackpoint=pow(2,16.L-mod("dynamic_range").tof())-1;
-		double g12_5=MaxRGB/8;
-		double ng12_5=(g12_5-blackpoint)*double(MaxRGB)/double(double(MaxRGB)-blackpoint);
+		double g12_5=QuantumRange/8;
+		double ng12_5=(g12_5-blackpoint)*double(QuantumRange)/double(double(QuantumRange)-blackpoint);
 
 		if ( mod("restore_gp").toi() ) {
-			image.level(blackpoint,MaxRGB,log(double(ng12_5)/double(MaxRGB))/log(double(g12_5)/double(MaxRGB)));
-			curve.level(blackpoint,MaxRGB,log(double(ng12_5)/double(MaxRGB))/log(double(g12_5)/double(MaxRGB)));
+			image.level(blackpoint,QuantumRange,log(double(ng12_5)/double(QuantumRange))/log(double(g12_5)/double(QuantumRange)));
+			curve.level(blackpoint,QuantumRange,log(double(ng12_5)/double(QuantumRange))/log(double(g12_5)/double(QuantumRange)));
 		}
 		else {
-			image.level(blackpoint,MaxRGB,1.L);
-			curve.level(blackpoint,MaxRGB,1.L);
+			image.level(blackpoint,QuantumRange,1.L);
+			curve.level(blackpoint,QuantumRange,1.L);
 		}
 
 	}
@@ -2388,33 +2358,35 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
         Lines(int i, ptr<Operator> lop) : Operator("lines",i,lop) {}
         void doJob() {
             Profile prof("Lines");
-                unsigned int x,y,or1,or2,tiers1,tiers2;
+                int x,y,or1,or2,tiers1,tiers2;
+		int h = image.rows(),
+		  w = image.columns();
 
                 double orn=1.61803398874989484820;
 
-                or1=( double(image.columns()) / orn );
-                or2=image.columns()-or1;
-                tiers1=( double(image.columns()) / 3. );
-                tiers2=image.columns()-tiers1;
-                for ( y = 0 ; y < image.rows() ; ++y ) {
-                        image.pixelColor(or1,y,Color(MaxRGB,MaxRGB,0,0));
-                        image.pixelColor(or2,y,Color(MaxRGB,MaxRGB,0,0));
-                        image.pixelColor(tiers1,y,Color(MaxRGB,0,0,0));
-                        image.pixelColor(tiers2,y,Color(MaxRGB,0,0,0));
+                or1=( double(w) / orn );
+                or2=w-or1;
+                tiers1=( double(w) / 3. );
+                tiers2=w-tiers1;
+                for ( y = 0 ; y < h ; ++y ) {
+                        image.pixelColor(or1,y,Color(QuantumRange,QuantumRange,0,0));
+                        image.pixelColor(or2,y,Color(QuantumRange,QuantumRange,0,0));
+                        image.pixelColor(tiers1,y,Color(QuantumRange,0,0,0));
+                        image.pixelColor(tiers2,y,Color(QuantumRange,0,0,0));
                         image.pixelColor(image.columns()/4,y,Color(0,0,0,0));
                         image.pixelColor(image.columns()/2,y,Color(0,0,0,0));
                         image.pixelColor(image.columns()-image.columns()/4,y,Color(0,0,0,0));
                 }
 
-                or1=( double(image.rows()) / orn );
-                or2=image.rows()-or1;
-                tiers1=( double(image.rows()) / 3. );
-                tiers2=image.rows()-tiers1;
-                for ( x = 0 ; x < image.columns() ; ++x ) {
-                        image.pixelColor(x,or1,Color(MaxRGB,MaxRGB,0,0));
-                        image.pixelColor(x,or2,Color(MaxRGB,MaxRGB,0,0));
-                        image.pixelColor(x,tiers1,Color(MaxRGB,0,0,0));
-                        image.pixelColor(x,tiers2,Color(MaxRGB,0,0,0));
+                or1=( double(h) / orn );
+                or2=h-or1;
+                tiers1=( double(h) / 3. );
+                tiers2=h-tiers1;
+                for ( x = 0 ; x < w ; ++x ) {
+                        image.pixelColor(x,or1,Color(QuantumRange,QuantumRange,0,0));
+                        image.pixelColor(x,or2,Color(QuantumRange,QuantumRange,0,0));
+                        image.pixelColor(x,tiers1,Color(QuantumRange,0,0,0));
+                        image.pixelColor(x,tiers2,Color(QuantumRange,0,0,0));
                         image.pixelColor(x,image.rows()/4,Color(0,0,0,0));
                         image.pixelColor(x,image.rows()/2,Color(0,0,0,0));
                         image.pixelColor(x,image.rows()-image.rows()/4,Color(0,0,0,0));
@@ -2450,9 +2422,9 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
 			PixelPacket *pixels = pixel_cache.get(0,y,w,1);
 			if ( !pixels ) continue;
 			for (int x = 0 ; x < w ; ++x ) {
-                            pixels[x].red=clamp<double>(pixels[x].red*rm,0,MaxRGB);
-                            pixels[x].green=clamp<double>(pixels[x].green*gm,0,MaxRGB);
-                            pixels[x].blue=clamp<double>(pixels[x].blue*bm,0,MaxRGB);
+                            pixels[x].red=clamp<double>(pixels[x].red*rm,0,QuantumRange);
+                            pixels[x].green=clamp<double>(pixels[x].green*gm,0,QuantumRange);
+                            pixels[x].blue=clamp<double>(pixels[x].blue*bm,0,QuantumRange);
                  }
 		}
 	#pragma omp barrier
@@ -2573,9 +2545,9 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
 			PixelPacket *pixels = pixel_cache.get(0,y,w,1);
 			if ( !pixels ) continue;
 			for (int x = 0 ; x < w ; ++x ) {
-                                 pixels[x].red=clamp<double>(pixels[x].red*RGB[0],0,MaxRGB);
-                                 pixels[x].green=clamp<double>(pixels[x].green*RGB[1],0,MaxRGB);
-                                 pixels[x].blue=clamp<double>(pixels[x].blue*RGB[2],0,MaxRGB);
+                                 pixels[x].red=clamp<double>(pixels[x].red*RGB[0],0,QuantumRange);
+                                 pixels[x].green=clamp<double>(pixels[x].green*RGB[1],0,QuantumRange);
+                                 pixels[x].blue=clamp<double>(pixels[x].blue*RGB[2],0,QuantumRange);
                  	}
 		}
 	#pragma omp barrier
@@ -2713,7 +2685,7 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
         	                //190ko pour 4000 points de large
         	                for ( int x = 0 ; x < w ; ++x ) {
 
-					int rgb[3]={pixels[x].red,pixels[x].green,pixels[x].blue};
+				        quantum_t rgb[3]={pixels[x].red,pixels[x].green,pixels[x].blue};
 					double lab[3];
 
 					RGB_to_LinearLab(rgb,lab);
@@ -2772,7 +2744,7 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
 		        image=Image("512x512","black");
                         int     h = image.rows(),
                                 w = image.columns();
-                        double v = pow(2,mod("help").tof())/(MaxRGB+1);
+                        double v = pow(2,mod("help").tof())/(QuantumRange+1);
 
                         image.modifyImage();
                         Pixels pixel_cache(image);
@@ -2781,14 +2753,14 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
         	                PixelPacket *pixels = pixel_cache.get(0,y,w,1);
         	                if ( !pixels ) continue;
         	                for ( int x = 0 ; x < w ; ++x ) {
-					int rgb[3];
+					quantum_t rgb[3];
 					double lab[3];
 
                                         lab[0] = lab_gammaize(v);
                                         lab[1] = double(x-256)/2.56;
                                         lab[2] = -double(y-256)/2.56;
 					CIELab_to_RGB(lab,rgb);
-					if ( rgb[0] == MaxRGB || rgb[1] == MaxRGB || rgb[2] == MaxRGB
+					if ( rgb[0] == QuantumRange || rgb[1] == QuantumRange || rgb[2] == QuantumRange
 					|| rgb[0] == 0 || rgb[1] == 0 || rgb[2] == 0 ) {
 						pixels[x].red=pixels[x].green=pixels[x].blue=0;
 					}
@@ -2802,10 +2774,10 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
         	#pragma omp barrier
                         pixel_cache.sync();
 		/*
-			unsigned int rgb[3] = {0,0,0};
-			for ( rgb[0] = 0 ; rgb[0] < MaxRGB ; rgb[0]+=512 )
-			for ( rgb[1] = 0 ; rgb[1] < MaxRGB ; rgb[1]+=512 )
-			for ( rgb[2] = 0 ; rgb[2] < MaxRGB ; rgb[2]+=512 ) {
+			quantum_t rgb[3] = {0,0,0};
+			for ( rgb[0] = 0 ; rgb[0] < QuantumRange ; rgb[0]+=512 )
+			for ( rgb[1] = 0 ; rgb[1] < QuantumRange ; rgb[1]+=512 )
+			for ( rgb[2] = 0 ; rgb[2] < QuantumRange ; rgb[2]+=512 ) {
 				double lab[3];
 				RGB_to_CIELab(rgb,lab);
 				int x = lab[1]*2.56+256.;
@@ -2843,7 +2815,7 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
 					c;
 
 				Color col = image.pixelColor(x,y);
-				if ( col.redQuantum() < 5 ) c = MaxRGB; else c = 0;
+				if ( col.redQuantum() < 5 ) c = QuantumRange; else c = 0;
 
                                image.pixelColor(x,y,Color(c,c,c,0));
 
@@ -2854,7 +2826,7 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
                                 //if ( y > 511 ) y = 511; else if ( y < 0 ) y = 0;
 				
 				col = image.pixelColor(x,y);
-				if ( col.redQuantum() < 5 ) c = MaxRGB; else c = 0;
+				if ( col.redQuantum() < 5 ) c = QuantumRange; else c = 0;
 
                                 image.pixelColor(x,y,Color(c,c,c,0));
                         }
@@ -2903,7 +2875,7 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
         	                double lab[w][3];
 
       	                for ( int x = 0 ; x < w ; ++x ) {
-  					int rgb[3]={pixels[x].red,pixels[x].green,pixels[x].blue};
+  					quantum_t rgb[3]={pixels[x].red,pixels[x].green,pixels[x].blue};
 
 					RGB_to_LinearLab(rgb,lab[x]);
                                 }
@@ -2936,7 +2908,7 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
                                 }
                                 
                                 for ( int x = 0 ; x < w ; ++x ) {
-				        int rgb[3];
+				        quantum_t rgb[3];
 				        LinearLab_to_RGB(lab[x],rgb);
 					pixels[x].red=rgb[0];
 					pixels[x].green=rgb[1];
@@ -3006,7 +2978,7 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
         	                if ( !pixels ) continue;
         	                for ( int x = 0 ; x < w ; ++x ) {
 #if 0
-					int g = (0.299*pixels[x].red+0.587*pixels[x].green+0.114*pixels[x].blue)  ;
+					quantum_t g = (0.299*pixels[x].red+0.587*pixels[x].green+0.114*pixels[x].blue)  ;
 /*					double h=0.,s=0.,l=0.;
 					RGB2HSL(pixels[x].red,pixels[x].green,pixels[x].blue,h,s,l);
 					s=s*lut[g];
@@ -3014,7 +2986,7 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
 */
 
 					if ( ! equals(lut[g],1.) ) {
-						int rgb[3]; rgb[0]=pixels[x].red; rgb[1]=pixels[x].green; rgb[2]=pixels[x].blue;
+						quantum_t rgb[3]; rgb[0]=pixels[x].red; rgb[1]=pixels[x].green; rgb[2]=pixels[x].blue;
 						double lab[3];
 						RGB_to_CIELab(rgb,lab);
 						lab[1]*=lut[g];
@@ -3023,13 +2995,13 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
 						pixels[x].red=rgb[0]; pixels[x].green=rgb[1]; pixels[x].blue=rgb[2];
 					}
 #else
-					int rgb[3]; rgb[0]=pixels[x].red; rgb[1]=pixels[x].green; rgb[2]=pixels[x].blue;
+					quantum_t rgb[3]; rgb[0]=pixels[x].red; rgb[1]=pixels[x].green; rgb[2]=pixels[x].blue;
 					double lab[3];
 					RGB_to_LinearLab(rgb,lab);
 					if ( lab[0] > maxl) maxl=lab[0];
 					if ( lab[1] > maxa) maxa=lab[1];
 					if ( lab[2] > maxb) maxb=lab[2];
-					int L=lab[0]*MaxRGB;if ( L > (signed)MaxRGB ) L=MaxRGB;
+					quantum_t L=lab[0]*QuantumRange;if ( L > QuantumRange ) L=QuantumRange;
 					if ( ! equals(lut[L],1.) )
 					  {
 					    lab[1]*=lut[L];
@@ -3059,7 +3031,7 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
 			double saturation = mod("saturation").tof()/100.;
 
 
-			double lut[MaxRGB+1];
+			double lut[QuantumRange+1];
 
 			double threshold_low = pow(2.,16.-low);
 			double threshold_high = pow(2.,16.-high);
@@ -3067,7 +3039,7 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
 			Logger l("desha");
 			l("th low  ="+ftostring(threshold_low));
 			l("th high ="+ftostring(threshold_high));
-			for ( unsigned int i = 0 ; i < MaxRGB+1 ; ++i ) {
+			for ( unsigned int i = 0 ; i < sizeof(lut)/sizeof(*lut) ; ++i ) {
 				if ( i < threshold_low ) {
 					lut[i]=saturation;
 				}
@@ -3075,8 +3047,8 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/MaxRGB)/ln(0.5)
 					lut[i]=1.;
 				}
 				else {
-					//lut[i] = (sin(M_PI/(low-high)*(high+log(i/double(MaxRGB))/log(2))+M_PI/2.)+1.)/2.;
-					lut[i] = ( saturation - 1. ) * (1.-(sin(M_PI/(low-high)*(high+log(i/double(MaxRGB))/log(2))+M_PI/2.)+1.)/2.) + 1.;
+					//lut[i] = (sin(M_PI/(low-high)*(high+log(i/double(QuantumRange))/log(2))+M_PI/2.)+1.)/2.;
+					lut[i] = ( saturation - 1. ) * (1.-(sin(M_PI/(low-high)*(high+log(i/double(QuantumRange))/log(2))+M_PI/2.)+1.)/2.) + 1.;
 				}
 			}
 

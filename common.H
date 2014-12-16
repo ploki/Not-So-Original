@@ -44,6 +44,13 @@
 #define TMP "/var/raii/gallery"
 */
 
+/*
+ * attention: en lab, l'échelle de couleur sort d'un short... pour l'instant
+ * quantum_t doit être un int
+ */
+typedef unsigned int quantum_t;
+typedef unsigned int extended_quantum_t;
+
 using std::ifstream;
 using namespace raii;
 using namespace raii::sql;
@@ -458,6 +465,7 @@ static inline String getRealPath(const String& path_info) {
                 return realpath;
         }
 
+void normalizeKernel(int order, double *kernel);
 
 
 
