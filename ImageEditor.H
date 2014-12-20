@@ -615,7 +615,7 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 				cropped.crop(Geometry(x2-x1,y2-y1,x1,y1));
 			}
 		}
-
+		upToDate = true;
                 resize(cropped);
                 return &cropped;
         }
@@ -768,170 +768,338 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
                         return v;
         }
 
-        void doJob() {
-                prepareTmpDir(mod("root"),mod("tmp"),mod("filename"));
-                String tfile = mod("tmp") + "/processed" + mod("root") + mod("filename") + ".ppm";
+      String getTmpFile(const String& filename) {
+	prepareTmpDir(mod("root"),mod("tmp"),filename);
+	return mod("tmp") + "/processed" + mod("root") + filename + ".ppm";
+      }
+      
+      String getDcrawCommandLine(const String& filename, const String& tfile) {
+	StringStream ss;
+	ss << "dcraw -c ";
 
-            StringStream ss;
-            ss << "dcraw -c ";
-            //if (mod("autoWB").toi()) ss << "-a ";
-            //if (mod("cameraWB").toi()) ss << "-w ";
-            int wb=mod("whitebalance").toi();
+	int wb=mod("whitebalance").toi();
 
-		imageInfo.probeFile(mod("root")+mod("filename"));
+	imageInfo.probeFile(mod("root")+filename);
 
-            switch (wb) {
-                case -1: {
-                        double RGB[3];
-                        double temperature = clamp<double>(mod("temperature").tof(),2000,12000);
-                        mod("temperature",ftostring(temperature));
-                        Temperature_to_RGB(temperature,RGB);
+	switch (wb) {
+	case -1: {
+	  double RGB[3];
+	  double temperature = clamp<double>(mod("temperature").tof(),2000,12000);
+	  mod("temperature",ftostring(temperature));
+	  Temperature_to_RGB(temperature,RGB);
 
-                        RGB[1]= RGB[1] / mod("tint").tof();
+	  RGB[1]= RGB[1] / mod("tint").tof();
 
-                        //Daylight multipliers
-                        RGB[0]= imageInfo.daylight_multipliers[0] /RGB[0];
-                        RGB[1]= imageInfo.daylight_multipliers[1] /RGB[1];
-                        RGB[2]= imageInfo.daylight_multipliers[2] /RGB[2];
+	  //Daylight multipliers
+	  RGB[0]= imageInfo.daylight_multipliers[0] /RGB[0];
+	  RGB[1]= imageInfo.daylight_multipliers[1] /RGB[1];
+	  RGB[2]= imageInfo.daylight_multipliers[2] /RGB[2];
 
 
-                        double minmul=RGB[0];
-                        if ( minmul > RGB[1] ) minmul=RGB[1];
-                        if ( minmul > RGB[2] ) minmul=RGB[2];
-                        RGB[0]/=minmul;
-                        RGB[1]/=minmul;
-                        RGB[2]/=minmul;
+	  double minmul=RGB[0];
+	  if ( minmul > RGB[1] ) minmul=RGB[1];
+	  if ( minmul > RGB[2] ) minmul=RGB[2];
+	  RGB[0]/=minmul;
+	  RGB[1]/=minmul;
+	  RGB[2]/=minmul;
 
-                        ss << "-r " << RGB[0] <<" "<< RGB[1] << " "<< RGB[2] << " 1 ";
-                        break;
-                }
-		default:
-			{
-				Connection conn;
-				ResultSet rs= conn.query("SELECT op,rx,gx,bx FROM gallery_white_balance WHERE id='"+itostring(wb)+"'");
-				if ( rs.next() ) {
-					if ( rs["op"] == "-r" ) {
-						double RGB[3];
-			                        RGB[0]= imageInfo.daylight_multipliers[0] * rs["rx"].tof();
-			                        RGB[1]= imageInfo.daylight_multipliers[1] * rs["gx"].tof();
-			                        RGB[2]= imageInfo.daylight_multipliers[2] * rs["bx"].tof();
+	  ss << "-r " << RGB[0] <<" "<< RGB[1] << " "<< RGB[2] << " 1 ";
+	  break;
+	}
+	default:
+	  {
+	    Connection conn;
+	    ResultSet rs= conn.query("SELECT op,rx,gx,bx"
+				     " FROM gallery_white_balance"
+				     " WHERE id='"+itostring(wb)+"'");
+	    if ( rs.next() ) {
+	      if ( rs["op"] == "-r" ) {
+		double RGB[3];
+		RGB[0]= imageInfo.daylight_multipliers[0] * rs["rx"].tof();
+		RGB[1]= imageInfo.daylight_multipliers[1] * rs["gx"].tof();
+		RGB[2]= imageInfo.daylight_multipliers[2] * rs["bx"].tof();
 						
-			                        double minmul=RGB[0];
-			                        if ( minmul > RGB[1] ) minmul=RGB[1];
-			                        if ( minmul > RGB[2] ) minmul=RGB[2];
-			                        RGB[0]/=minmul;
-			                        RGB[1]/=minmul;
-			                        RGB[2]/=minmul;
+		double minmul=RGB[0];
+		if ( minmul > RGB[1] ) minmul=RGB[1];
+		if ( minmul > RGB[2] ) minmul=RGB[2];
+		RGB[0]/=minmul;
+		RGB[1]/=minmul;
+		RGB[2]/=minmul;
 	
-			                        ss << rs["op"] << " " << RGB[0] <<" "<< RGB[1] << " "<< RGB[2] << " 1 ";
-					}
-					else {
-						ss << rs["op"] << " ";
-					}
+		ss << rs["op"] << " " << RGB[0] <<" "<< RGB[1] << " "<< RGB[2] << " 1 ";
+	      }
+	      else {
+		ss << rs["op"] << " ";
+	      }
 
-				}
-			}
-            }
-            if ( ! mod("noise").empty() )
-                ss << "-n " <<mod("noise").toi()<<" ";
-            ss << "-b "<<mod("brightness").tof()<<" ";
-            if ( ! mod("blackpoint").empty() )
-                ss << "-k "<<mod("blackpoint").toi()<<" ";
-            ss << "-q "<<mod("quality").toi()<<" ";
+	    }
+	  }
+	}
+	if ( ! mod("noise").empty() )
+	  ss << "-n " <<mod("noise").toi()<<" ";
+	ss << "-b "<<mod("brightness").tof()<<" ";
+	if ( ! mod("blackpoint").empty() )
+	  ss << "-k "<<mod("blackpoint").toi()<<" ";
+	ss << "-q "<<mod("quality").toi()<<" ";
 
-                switch ( mod("halfSize").toi() ) {
-                        case 0: //full size dcraw interpolation
-                                //nop
-                                break;
-                        default:
-                        case 1: //halfsize
-                                ss << "-h ";
-                                break;
-                        case 2: //rawdata
-                        case 3: //internal interpolation
-                                ss << "-d ";
-                                break;
-                }
+	switch ( mod("halfSize").toi() ) {
+	case 0: //full size dcraw interpolation
+	  //nop
+	  break;
+	default:
+	case 1: //halfsize
+	  ss << "-h ";
+	  break;
+	case 2: //rawdata
+	case 3: //internal interpolation
+	  ss << "-d ";
+	  break;
+	}
 
-            //if ( mod("halfSize").toi() == 0 ) {
-            if (mod("fourColors").toi()) ss<<"-f ";
-            //}
-            ss << "-H "<<mod("highlights").toi()<<" ";
+	if (mod("fourColors").toi()) ss<<"-f ";
+	
+	ss << "-H "<<mod("highlights").toi()<<" ";
             
-            switch ( mod("16bit").toi() ) {
-                        case 1: //16bit linear
-                                ss << "-6 -W -g 1 1 ";
-                                imageInfo.gamma=LIN_G;
-                                imageInfo.non_linear_range=LIN_N;
-                                break;
-                        case 2: //16bit IUT BT.709
-                                ss << "-6 -W -g 2.222 4.5 ";
-                                imageInfo.gamma=BT709_G;
-                                imageInfo.non_linear_range=BT709_N;
-                                break;
-                        case 3: //16bit sRGB
-                                ss << "-6 -W -g 2.4 12.8 ";
-                                imageInfo.gamma=SRGB_G;
-                                imageInfo.non_linear_range=SRGB_N;
-                                break;
-                        case 4: //16bit IUT BT.709 (auto WP)
-                                ss << "-6 -g 2.222 4.5 ";
-                                imageInfo.gamma=BT709_G;
-                                imageInfo.non_linear_range=BT709_N;
-                                break;
-                        case 5: //16bit sRGB (auto WP)
-                                ss << "-6 -g 2.4 12.8 ";
-                                imageInfo.gamma=SRGB_G;
-                                imageInfo.non_linear_range=SRGB_N;
-                                break;
-                        case 6: //8bit sRGB (auto WP)
-                                ss << "-g 2.4 12.8 ";
-                                imageInfo.gamma=SRGB_G;
-                                imageInfo.non_linear_range=SRGB_N;
-                                break;
-                        case 7: //8bit linear
-                                ss << "-W -g 1 1 ";
-                                imageInfo.gamma=LIN_G;
-                                imageInfo.non_linear_range=LIN_N;
-                                break;
-                        case 8: //8bit IUT BT.709
-                                ss << "-W -g 2.222 4.5 ";
-                                imageInfo.gamma=BT709_G;
-                                imageInfo.non_linear_range=BT709_N;
-                                break;
-                        case 9: //8bit sRGB
-                                ss << "-W -g 2.4 12.8 ";
-                                imageInfo.gamma=SRGB_G;
-                                imageInfo.non_linear_range=SRGB_N;
-                                break;
-                        case 0: //8bit IUT BT.709 (auto WP)
-                        default:
-                                imageInfo.gamma=BT709_G;
-                                imageInfo.non_linear_range=BT709_N;
-                                break;
-            }
-/*
-            if (mod("16bit").toi()) {
-		ss<<"-4 ";
-		imageInfo.gamma=LIN_G;
-		imageInfo.non_linear_range=LIN_N;
+	switch ( mod("16bit").toi() ) {
+	case 1: //16bit linear
+	  ss << "-6 -W -g 1 1 ";
+	  imageInfo.gamma=LIN_G;
+	  imageInfo.non_linear_range=LIN_N;
+	  break;
+	case 2: //16bit IUT BT.709
+	  ss << "-6 -W -g 2.222 4.5 ";
+	  imageInfo.gamma=BT709_G;
+	  imageInfo.non_linear_range=BT709_N;
+	  break;
+	case 3: //16bit sRGB
+	  ss << "-6 -W -g 2.4 12.8 ";
+	  imageInfo.gamma=SRGB_G;
+	  imageInfo.non_linear_range=SRGB_N;
+	  break;
+	case 4: //16bit IUT BT.709 (auto WP)
+	  ss << "-6 -g 2.222 4.5 ";
+	  imageInfo.gamma=BT709_G;
+	  imageInfo.non_linear_range=BT709_N;
+	  break;
+	case 5: //16bit sRGB (auto WP)
+	  ss << "-6 -g 2.4 12.8 ";
+	  imageInfo.gamma=SRGB_G;
+	  imageInfo.non_linear_range=SRGB_N;
+	  break;
+	case 6: //8bit sRGB (auto WP)
+	  ss << "-g 2.4 12.8 ";
+	  imageInfo.gamma=SRGB_G;
+	  imageInfo.non_linear_range=SRGB_N;
+	  break;
+	case 7: //8bit linear
+	  ss << "-W -g 1 1 ";
+	  imageInfo.gamma=LIN_G;
+	  imageInfo.non_linear_range=LIN_N;
+	  break;
+	case 8: //8bit IUT BT.709
+	  ss << "-W -g 2.222 4.5 ";
+	  imageInfo.gamma=BT709_G;
+	  imageInfo.non_linear_range=BT709_N;
+	  break;
+	case 9: //8bit sRGB
+	  ss << "-W -g 2.4 12.8 ";
+	  imageInfo.gamma=SRGB_G;
+	  imageInfo.non_linear_range=SRGB_N;
+	  break;
+	case 0: //8bit IUT BT.709 (auto WP)
+	default:
+	  imageInfo.gamma=BT709_G;
+	  imageInfo.non_linear_range=BT709_N;
+	  break;
+	}
+	if ( mod("red_mag") != "1.000" || mod("blue_mag") != "1.000" )
+	  ss << "-C " << mod("red_mag").tof() << " " << mod("blue_mag").tof() << " ";
+	ss << "\"" << mod("root") << filename << "\"" << " > \"" << tfile << "\"";
+	return ss.str();
+      }
+
+      void doCurve() {
+	Profile prof("curve creation");
+	curve.size("65536x1");
+	Pixels curve_cache(curve);
+	PixelPacket *pixels = curve_cache.get(0,0,65536,1);
+	if ( mod("discrete").toi() ) {
+	  double discrete=mod("discrete").tof();
+	  for(int i=0; i < 65536 ; ++i) {
+	    quantum_t c = pow(2., 16. - floor( -discrete*log(double(i)/QuantumRange)/log(2) )/discrete );
+	    if (c > QuantumRange) c=QuantumRange;
+	    pixels[i].red=pixels[i].green=pixels[i].blue=c;
+	  }
+	}
+	else
+	  for(int i=0; i < 65536 ; ++i)
+	    pixels[i].red=pixels[i].green=pixels[i].blue=i;
+	curve_cache.sync();
+	iGamma(curve,imageInfo.gamma,imageInfo.non_linear_range,false);
+      }
+      
+      void doHotPixels() {
+	int hp_enabled = mod("hp_enabled").toi();
+	int hp_aggressive = mod("hp_aggressive").toi();
+	if ( hp_enabled ) {
+	  if ( imageInfo.iso_speed >= hp_enabled )
+	    image = removeHotPixels(image,
+				    pow(2.,mod("hp_delta").tof()),
+				    imageInfo.iso_speed >= hp_aggressive ? 1 : 0,
+				    mod("hp_naive").toi());
+	}
+      }
+
+      void doJob() {
+	String filename = mod("filename");
+
+
+	if ( filename.matches("\\.[sS][tT][kK]$") )
+	  doStackJob(filename);
+	else
+	  doRawJob(filename);
+	doCurve();
+      }
+
+      void doStackJob(String& filename) {
+	Logger log("stackjob"); log.error();
+	FILE *stack_desc = fopen((mod("root")+filename).c_str(), "r");
+	char buf[1024];
+	int n_lights = 0,
+	  n_darks = 0,
+	  n_flats = 0;
+	int w = -1, h = -1;
+	extended_quantum_t *light = NULL,
+	  *dark = NULL,
+	  *flat = NULL;
+	extended_quantum_t **current = NULL;
+	bool first_frame = true;
+	int ff_x = 0, ff_y=0;
+	while ( fgets(buf, 1024, stack_desc) )
+	  {
+	    String str=buf;
+	    Vector<String> elem = str.explode(":");
+	    if ( str.matches("^LIGHT:") )
+	      {
+		current = &light;
+		++n_lights;
+	      }
+	    else if ( str.matches("^DARK:") )
+	      {
+		current = &dark;
+		++n_darks;
+	      }
+	    else if ( str.matches("^FLAT:") )
+	      {
+		current = &flat;
+		++n_flats;
+	      }
+	    else
+	      {
+		//throw OperatorException("Invalid Stack file format");
+		break;
+	      }
+	    /*
+	    //dirty way to remove the trailing \n
+	    elem[1].resize(elem[1].size()-1);
+	    */
+	    doRawJob(elem[1]);
+	    if ( w == -1 && h == -1 )
+	      {
+		w = image.columns();
+		h = image.rows();
+	      }
+	    else
+	      {
+		if ( w != signed(image.columns()) || h != signed(image.rows()) )
+		  throw OperatorException("Image of invalid size found in batch");
+	      }
+	    if ( *current == NULL )
+	      {
+		log("allocating "+itostring(h*w*3*sizeof(extended_quantum_t))+" bytes");
+		*current = (extended_quantum_t *)calloc(1,h*w*3*sizeof(extended_quantum_t));
+	      }
+	    if ( *current == NULL )
+	      throw OperatorException("Not enough memory");
+	    int lcx = elem[2].toi();
+	    int lcy = elem[3].toi();
+	    int cw = elem[4].toi();
+	    int ch = elem[5].toi();
+
+	    if ( cw != w || ch != h )
+	      {
+		lcx = w*lcx/cw;
+		lcy = h*lcy/ch;
+	      }
+	    
+	    if ( first_frame )
+	      {
+		first_frame = false;
+		ff_x=lcx;
+		ff_y=lcy;
+	      }
+
+	    {	    
+	      int cy = lcy - ff_y;
+	      int cx = lcx - ff_x;
+	      log(" ********* ALIGN : X="+itostring(cx)+", Y="+itostring(cy));
+	      Pixels pixel_cache(image);
+	      #pragma omp parallel for
+	      for ( int y = 0 ; y < h ; ++y ) {
+		if ( y + cy < 0 || y + cy >= h )
+		  continue;
+		PixelPacket *pixels;
+		try {
+		  pixels = pixel_cache.get(0,y+cy,w,1);
 		}
-		else {
-		//par défaut dcraw IUT BT.709
-		//en fait, non...?
-		imageInfo.gamma=SRGB_G;
-		imageInfo.non_linear_range=SRGB_N;
+		catch(...) {
+		  throw OperatorException("pixel_cache.get");
 		}
-*/
-            if ( mod("red_mag") != "1.000" || mod("blue_mag") != "1.000" )
-	      ss << "-C " << mod("red_mag").tof() << " " << mod("blue_mag").tof() << " ";
-            ss << "\"" << mod("root") << mod("filename") << "\"" << " > \"" << tfile << "\"";
+		for ( int x = 0 ; x < w ; ++x ) {
+		  if ( x + cx < 0 || x + cx >= w )
+		    continue;
+		  (*current)[y*w*3+x*3+0]+= pixels[x+cx].red;
+		  (*current)[y*w*3+x*3+1]+= pixels[x+cx].green;
+		  (*current)[y*w*3+x*3+2]+= pixels[x+cx].blue;
+		}
+	      }
+	      #pragma omp barrier
+	      pixel_cache.sync();
+	    }
+	  }
+	fclose(stack_desc);
+	
+	Pixels pixel_cache(image);
+	#pragma omp parallel for
+	for ( int y = 0 ; y < h ; ++y ) {
+	  PixelPacket *pixels = pixel_cache.get(0,y,w,1);
+	  for ( int x = 0 ; x < w ; ++x ) {
+	    pixels[x].red =   double((*current)[y*w*3+x*3+0]) / n_lights;
+	    pixels[x].green = double((*current)[y*w*3+x*3+1]) / n_lights;
+	    pixels[x].blue =  double((*current)[y*w*3+x*3+2]) / n_lights;
+	  }
+	}
+	#pragma omp barrier
+	pixel_cache.sync();
+	free(flat);
+	free(dark);
+	free(light);
+	//free(*current);
+	
+      }
+      
+
+      
+        void doRawJob(String& filename) {
+
+	  String tfile = getTmpFile(filename);
+	  String dcraw_command_line = getDcrawCommandLine(filename, tfile);
 
            int res __attribute__((unused));
            {
                 Profile prof("dcraw");
-                Logger log("dcraw");log.debug(ss.str());
-                res = system((ss.str()).c_str());
+                Logger log("dcraw");log.debug(dcraw_command_line);
+                res = system(dcraw_command_line.c_str());
            }
            {
                 Profile prof("image.read");
@@ -939,107 +1107,84 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
            }
                 unlink(tfile.c_str());
 
-           {
-                Profile prof("curve creation");
-		curve.size("65536x1");
-        	Pixels curve_cache(curve);
-		PixelPacket *pixels = curve_cache.get(0,0,65536,1);
-		if ( mod("discrete").toi() ) {
-			double discrete=mod("discrete").tof();
-			for(int i=0; i < 65536 ; ++i) {
-				quantum_t c = pow(2., 16. - floor( -discrete*log(double(i)/QuantumRange)/log(2) )/discrete );
-				if (c > QuantumRange) c=QuantumRange;
-				pixels[i].red=pixels[i].green=pixels[i].blue=c;
-			}
-		}
-		else
-			for(int i=0; i < 65536 ; ++i)
-				pixels[i].red=pixels[i].green=pixels[i].blue=i;
-		curve_cache.sync();
-		iGamma(curve,imageInfo.gamma,imageInfo.non_linear_range,false);
+		doHotPixels();
+		
+		doInterpolate();
+        }
 
-                int hp_enabled = mod("hp_enabled").toi();
-                int hp_aggressive = mod("hp_aggressive").toi();
-		if ( hp_enabled ) {
-		        if ( imageInfo.iso_speed >= hp_enabled )
-			        image = removeHotPixels(image,
-			                                pow(2.,mod("hp_delta").tof()),
-			                                imageInfo.iso_speed >= hp_aggressive ? 1 : 0,
-			                                mod("hp_naive").toi());
-		}
-	    }
+      void doInterpolate() {
 #if 0
-            if ( mod("halfSize").toi() == 3 && !imageInfo.filterPattern.empty() ) {
-                image.modifyImage();
-                int     h = image.rows(),
-                        w = image.columns();
+	if ( mod("halfSize").toi() == 3 && !imageInfo.filterPattern.empty() ) {
+	  image.modifyImage();
+	  int     h = image.rows(),
+	    w = image.columns();
                         
-                /*
-                  RGGB RGGB RGGB RGGB
-                  GBRG GBRG GBRG GBRG
-                  GRBG GRBG GRBG GRBG
-                  BGGR BGGR BGGR BGGR
+	  /*
+	    RGGB RGGB RGGB RGGB
+	    GBRG GBRG GBRG GBRG
+	    GRBG GRBG GRBG GRBG
+	    BGGR BGGR BGGR BGGR
                   
                   
-                  RGRGRG GBGBGB GRGRGR BGBGBG        Rgb RGb Rgb RGb Rgb RGb
-                  GBGBGB RGRGRG BGBGBG GRGRGR        RGb RgB RGB RgB RGB RgB
-                  RGRGRG GBGBGB GRGRGR BGBGBG        Rgb RGB RgB RGB RgB RGB
-                  GBGBGB RGRGRG BGBGBG GRGRGR        RGb RgB RGb RgB RGb RgB
-                                                     Rgb rGb Rgb rGb Rgb rGb
-                 */
+	    RGRGRG GBGBGB GRGRGR BGBGBG        Rgb RGb Rgb RGb Rgb RGb
+	    GBGBGB RGRGRG BGBGBG GRGRGR        RGb RgB RGB RgB RGB RgB
+	    RGRGRG GBGBGB GRGRGR BGBGBG        Rgb RGB RgB RGB RgB RGB
+	    GBGBGB RGRGRG BGBGBG GRGRGR        RGb RgB RGb RgB RGb RgB
+	    Rgb rGb Rgb rGb Rgb rGb
+	  */
 
-                const char * pattern = imageInfo.filterPattern.c_str();
+	  const char * pattern = imageInfo.filterPattern.c_str();
 
-                Pixels pixel_cache(image);
+	  Pixels pixel_cache(image);
 
-//#pragma omp parallel for
-                for ( int y = 1 ; y < h-1 ; ++y ) {
-                        PixelPacket *pixels[3] = { pixel_cache.get(0,y-1,w,1), pixel_cache.get(0,y,w,1), pixel_cache.get(0,y+1,w,1) };
+	  //#pragma omp parallel for
+	  for ( int y = 1 ; y < h-1 ; ++y ) {
+	    PixelPacket *pixels[3] = { pixel_cache.get(0,y-1,w,1), pixel_cache.get(0,y,w,1), pixel_cache.get(0,y+1,w,1) };
                                        
-                        if ( !pixels[0] || !pixels[1] || !pixels[2] ) continue;
-                        for ( int x = 1 ; x < w-1 ; ++x ) {
+	    if ( !pixels[0] || !pixels[1] || !pixels[2] ) continue;
+	    for ( int x = 1 ; x < w-1 ; ++x ) {
 
-                                switch( pattern[ ((y%4) * 4) + (x%4)  ] ) {
-                                        case 'R'://red
-                                                pixels[1][x].green = (pixels[0][x].green + pixels[2][x].green + pixels[1][x-1].green + pixels[1][x+1].green)/4;
-                                                pixels[1][x].blue = (pixels[0][x-1].blue + pixels[0][x+1].blue + pixels[2][x-1].blue + pixels[2][x+1].blue )/4;
-                                                break;
-                                        case 'G'://green
-                                                if ( pattern[ ((y%4) * 4) + ((x-1)%4)  ] == 'R' ) {
-                                                        pixels[1][x].red=(pixels[1][x-1].red+pixels[1][x+1].red)/2;
-                                                        pixels[1][x].blue=(pixels[0][x].blue+pixels[2][x].blue)/2;
-                                                }
-                                                else {
-                                                        pixels[1][x].blue=(pixels[1][x-1].blue+pixels[1][x+1].blue)/2;
-                                                        pixels[1][x].red=(pixels[0][x].red+pixels[2][x].red)/2;
-                                                }
+	      switch( pattern[ ((y%4) * 4) + (x%4)  ] ) {
+	      case 'R'://red
+		pixels[1][x].green = (pixels[0][x].green + pixels[2][x].green + pixels[1][x-1].green + pixels[1][x+1].green)/4;
+		pixels[1][x].blue = (pixels[0][x-1].blue + pixels[0][x+1].blue + pixels[2][x-1].blue + pixels[2][x+1].blue )/4;
+		break;
+	      case 'G'://green
+		if ( pattern[ ((y%4) * 4) + ((x-1)%4)  ] == 'R' ) {
+		  pixels[1][x].red=(pixels[1][x-1].red+pixels[1][x+1].red)/2;
+		  pixels[1][x].blue=(pixels[0][x].blue+pixels[2][x].blue)/2;
+		}
+		else {
+		  pixels[1][x].blue=(pixels[1][x-1].blue+pixels[1][x+1].blue)/2;
+		  pixels[1][x].red=(pixels[0][x].red+pixels[2][x].red)/2;
+		}
 
-                                                break;
-                                        case 'B'://blue
-                                                pixels[1][x].green = (pixels[0][x].green + pixels[2][x].green + pixels[1][x-1].green + pixels[1][x+1].green)/4;
-                                                pixels[1][x].red = (pixels[0][x-1].red + pixels[0][x+1].red + pixels[2][x-1].red + pixels[2][x+1].red )/4;
+		break;
+	      case 'B'://blue
+		pixels[1][x].green = (pixels[0][x].green + pixels[2][x].green + pixels[1][x-1].green + pixels[1][x+1].green)/4;
+		pixels[1][x].red = (pixels[0][x-1].red + pixels[0][x+1].red + pixels[2][x-1].red + pixels[2][x+1].red )/4;
 
-                                                break;
-                                        case 'C'://cyan
-//                                                pixels[x].red=0;
-                                                break;
-                                        case 'M'://magenta
-//                                                pixels[x].green=0;
-                                                break;
-                                        case 'Y'://yellow
-//                                                pixels[x].blue=0;
-                                                break;
-                                }
+		break;
+	      case 'C'://cyan
+		//                                                pixels[x].red=0;
+		break;
+	      case 'M'://magenta
+		//                                                pixels[x].green=0;
+		break;
+	      case 'Y'://yellow
+		//                                                pixels[x].blue=0;
+		break;
+	      }
 
 
-                        }
-                }
-  //      #pragma omp barrier
-                pixel_cache.sync();
-            }
+	    }
+	  }
+	  //      #pragma omp barrier
+	  pixel_cache.sync();
+	}
 #endif
 
-        }
+      }
     };
 
     class Negate : public Operator {
@@ -1595,8 +1740,11 @@ void unLabize(Image &image, Image &labImage) {
                         //Magick::Color col = pixels[x];
                         //int rgb[3];
                         pixels[x].red=lutr[pixels[x].red];
-                        pixels[x].green=lutg[pixels[x].green];
-                        pixels[x].blue=lutb[pixels[x].blue];
+			if ( !lab )
+			  {
+			    pixels[x].green=lutg[pixels[x].green];
+			    pixels[x].blue=lutb[pixels[x].blue];
+			  }
 //                        image.pixelColor(x,y,Color(rgb[0],rgb[1],rgb[2],0));
                     }
 		}

@@ -112,7 +112,7 @@ class SERVLET(edit) : public HttpServlet {
                     if ( ! process ) throw ServletException("No process defined");
 
                         Magick::Blob blob;
-                        process->getBlob(720,&blob);
+                        process->getBlob(721,&blob);
                         response.setContentType("image/jpg");
                         if ( ap_rwrite(blob.data(),blob.length(),apacheRequest) < 0 )
                                 throw ResponseException("Connexion closed");
