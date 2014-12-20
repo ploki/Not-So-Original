@@ -924,7 +924,7 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 		}
 */
             if ( mod("red_mag") != "1.000" || mod("blue_mag") != "1.000" )
-                ss << "-C " << mod("red_mag") << " " << mod("blue_mag") << " ";
+	      ss << "-C " << mod("red_mag").tof() << " " << mod("blue_mag").tof() << " ";
             ss << "\"" << mod("root") << mod("filename") << "\"" << " > \"" << tfile << "\"";
 
            int res __attribute__((unused));

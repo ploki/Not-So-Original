@@ -163,11 +163,19 @@ void makeThumbnail(const String& root, const String& tmp, const String& filename
 
  }
 
+int getDefaultProcessDate(const String& filename) {
+  long ts=-1;
+  Connection conn;
+  ResultSet rs = conn.query("SELECT date FROM gallery_process_ts WHERE filename = '__default__' ORDER BY date");
+  while (rs.next()) ts=rs["date"].tol();
+  return ts;
+}
+
 int getProcessDate(const String& filename) {
   int ts=-1;
   Connection conn;
   ResultSet rs = conn.query("SELECT date FROM gallery_process_ts WHERE filename = '"+path_encode(filename)+"' ORDER BY date");
-  while (rs.next()) ts=rs["date"].toi();
+  while (rs.next()) ts=rs["date"].tol();
   return ts;
 }
 
@@ -176,12 +184,16 @@ bool isThumbnailUpToDate(const String& root, const String& tmp, const String& fi
   struct stat stImage,stThumbnail;
   String thumbnail=tmp + String("/") + type[T_PREVIEW] + root + filename + String(".jpg");
   int ret;
-
+  long processDate;
   stat((root+filename).c_str(),&stImage);
   ret=stat(thumbnail.c_str(),&stThumbnail);
 
+  processDate = getProcessDate(filename);
+  if ( -1 == processDate && isRaw(root+filename) )
+    processDate = getDefaultProcessDate(filename);
+  
   if ( ret < 0 || ( stImage.st_mtime > stThumbnail.st_mtime )
-       || ( getProcessDate(filename) > stThumbnail.st_mtime ) )
+       || ( processDate > stThumbnail.st_mtime ) )
     return false;
   return true;
 }
