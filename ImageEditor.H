@@ -282,6 +282,15 @@ static inline void unLabize(Image &image, Image &labImage);
 			return image;
 	}
 
+        template<typename t> t clamp(t v,t min, t max) {
+                if ( v < min )
+                        return min;
+                else if ( v > max )
+                        return max;
+                else
+                        return v;
+        }
+
 
     DECLARE_EXCEPTION(OperatorException,raii::Exception);
     DECLARE_EXCEPTION(ProcessException,raii::Exception);
@@ -508,9 +517,14 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
             mod("zoom","100");
             serial=0;
         }
+
+      void setMaxSize(int maxsize) {
+	bool saved_upToDate = upToDate;
+	mod("maxsize", itostring(maxsize));
+	upToDate=saved_upToDate;
+      }
+      
         Image* propagate() {
-
-
 
                 cropped=image;
 
@@ -635,6 +649,10 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	}
 
         void doJob() {
+
+	  if ( upToDate )
+	    return;
+  
                 try{
                     image.read(mod("root") + mod("filename"));
                 }
@@ -759,15 +777,6 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
                 }
                 for (c=0; c<3; c++) RGB[c] = RGB[c]/max;
         }
-        template<typename t> t clamp(t v,t min, t max) {
-                if ( v < min )
-                        return min;
-                else if ( v > max )
-                        return max;
-                else
-                        return v;
-        }
-
       String getTmpFile(const String& filename) {
 	prepareTmpDir(mod("root"),mod("tmp"),filename);
 	return mod("tmp") + "/processed" + mod("root") + filename + ".ppm";
@@ -951,6 +960,10 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
       }
 
       void doJob() {
+
+	if ( upToDate )
+	  return;
+
 	String filename = mod("filename");
 
 
@@ -965,44 +978,37 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	Logger log("stackjob"); log.error();
 	FILE *stack_desc = fopen((mod("root")+filename).c_str(), "r");
 	char buf[1024];
-	int n_lights = 0,
-	  n_darks = 0,
-	  n_flats = 0;
+	int n_lights = 0;
+	int n_darks = 0;
+	int n_flats = 0;
 	int w = -1, h = -1;
-	extended_quantum_t *light = NULL,
+	long *light = NULL,
 	  *dark = NULL,
 	  *flat = NULL;
-	extended_quantum_t **current = NULL;
+	long flat_red = 0, flat_green = 0, flat_blue = 0;
 	bool first_frame = true;
 	int ff_x = 0, ff_y=0;
+
+	//darks
 	while ( fgets(buf, 1024, stack_desc) )
 	  {
 	    String str=buf;
 	    Vector<String> elem = str.explode(":");
-	    if ( str.matches("^LIGHT:") )
+	    if ( str.matches("^LIGHT:") ||
+		 str.matches("^FLAT:") )
 	      {
-		current = &light;
-		++n_lights;
+		continue;
 	      }
 	    else if ( str.matches("^DARK:") )
 	      {
-		current = &dark;
 		++n_darks;
-	      }
-	    else if ( str.matches("^FLAT:") )
-	      {
-		current = &flat;
-		++n_flats;
 	      }
 	    else
 	      {
-		//throw OperatorException("Invalid Stack file format");
 		break;
 	      }
-	    /*
-	    //dirty way to remove the trailing \n
-	    elem[1].resize(elem[1].size()-1);
-	    */
+
+	    log(" ********* DARK : N="+itostring(n_darks));
 	    doRawJob(elem[1]);
 	    if ( w == -1 && h == -1 )
 	      {
@@ -1014,12 +1020,141 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 		if ( w != signed(image.columns()) || h != signed(image.rows()) )
 		  throw OperatorException("Image of invalid size found in batch");
 	      }
-	    if ( *current == NULL )
+
+	    if ( dark == NULL )
 	      {
-		log("allocating "+itostring(h*w*3*sizeof(extended_quantum_t))+" bytes");
-		*current = (extended_quantum_t *)calloc(1,h*w*3*sizeof(extended_quantum_t));
+		log("allocating "+itostring(h*w*3*sizeof(*dark))+" bytes for darks");
+		dark = (long*)calloc(1,h*w*3*sizeof(*dark));
 	      }
-	    if ( *current == NULL )
+	    if ( dark == NULL )
+	      throw OperatorException("Not enough memory");
+
+	    Pixels pixel_cache(image);
+            #pragma omp parallel for
+	    for ( int y = 0 ; y < h ; ++y ) {
+	      PixelPacket *pixels;
+	      try {
+		pixels = pixel_cache.get(0,y,w,1);
+	      }
+	      catch(...) {
+		throw OperatorException("pixel_cache.get");
+	      }
+	      for ( int x = 0 ; x < w ; ++x ) {
+		dark[y*w*3+x*3+0]+= pixels[x].red;
+		dark[y*w*3+x*3+1]+= pixels[x].green;
+		dark[y*w*3+x*3+2]+= pixels[x].blue;
+	      }
+	    }
+            #pragma omp barrier
+	    pixel_cache.sync();
+	  }
+	
+	//flats
+	rewind(stack_desc);
+	while ( fgets(buf, 1024, stack_desc) )
+	  {
+	    String str=buf;
+	    Vector<String> elem = str.explode(":");
+	    if ( str.matches("^LIGHT:") ||
+		 str.matches("^DARK:") )
+	      {
+		continue;
+	      }
+	    else if ( str.matches("^FLAT:") )
+	      {
+		++n_flats;
+	      }
+	    else
+	      {
+		break;
+	      }
+
+	    log(" ********* FLAT : N="+itostring(n_flats));
+	    doRawJob(elem[1]);
+	    if ( w == -1 && h == -1 )
+	      {
+		w = image.columns();
+		h = image.rows();
+	      }
+	    else
+	      {
+		if ( w != signed(image.columns()) || h != signed(image.rows()) )
+		  throw OperatorException("Image of invalid size found in batch");
+	      }
+
+	    if ( flat == NULL )
+	      {
+		log("allocating "+itostring(h*w*3*sizeof(*flat))+" bytes for flats");
+		flat = (long*)calloc(1,h*w*3*sizeof(*flat));
+	      }
+	    if ( flat == NULL )
+	      throw OperatorException("Not enough memory");
+
+	    Pixels pixel_cache(image);
+            #pragma omp parallel for
+	    for ( int y = 0 ; y < h ; ++y ) {
+	      PixelPacket *pixels;
+	      try {
+		pixels = pixel_cache.get(0,y,w,1);
+	      }
+	      catch(...) {
+		throw OperatorException("pixel_cache.get");
+	      }
+	      for ( int x = 0 ; x < w ; ++x ) {
+		flat[y*w*3+x*3+0]+= pixels[x].red;
+		flat[y*w*3+x*3+1]+= pixels[x].green;
+		flat[y*w*3+x*3+2]+= pixels[x].blue;
+		if ( flat[y*w*3+x*3+0] > flat_red )
+		  flat_red = flat[y*w*3+x*3+0];
+		if ( flat[y*w*3+x*3+1] > flat_green )
+		  flat_green = flat[y*w*3+x*3+1];
+		if ( flat[y*w*3+x*3+2] > flat_blue )
+		  flat_blue = flat[y*w*3+x*3+2];
+	      }
+	    }
+            #pragma omp barrier
+	    pixel_cache.sync();
+	  }
+	
+
+
+	//lights
+	rewind(stack_desc);
+	while ( fgets(buf, 1024, stack_desc) )
+	  {
+	    String str=buf;
+	    Vector<String> elem = str.explode(":");
+	    if ( str.matches("^LIGHT:") )
+	      {
+		++n_lights;
+	      }
+	    else if ( str.matches("^DARK:") ||
+		      str.matches("^FLAT:") )
+	      {
+		continue;
+	      }
+	    else
+	      {
+		break;
+	      }
+
+	    doRawJob(elem[1]);
+	    if ( w == -1 && h == -1 )
+	      {
+		w = image.columns();
+		h = image.rows();
+	      }
+	    else
+	      {
+		if ( w != signed(image.columns()) || h != signed(image.rows()) )
+		  throw OperatorException("Image of invalid size found in batch");
+	      }
+	    if ( light == NULL )
+	      {
+		log("allocating "+itostring(h*w*3*sizeof(*light))+" bytes for lights");
+		light = (long*)calloc(1,h*w*3*sizeof(*light));
+	      }
+	    if ( light == NULL )
 	      throw OperatorException("Not enough memory");
 	    int lcx = elem[2].toi();
 	    int lcy = elem[3].toi();
@@ -1042,7 +1177,7 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	    {	    
 	      int cy = lcy - ff_y;
 	      int cx = lcx - ff_x;
-	      log(" ********* ALIGN : X="+itostring(cx)+", Y="+itostring(cy));
+	      log(" ********* LIGHT : N="+itostring(n_lights)+", ALIGN : X="+itostring(cx)+", Y="+itostring(cy));
 	      Pixels pixel_cache(image);
 	      #pragma omp parallel for
 	      for ( int y = 0 ; y < h ; ++y ) {
@@ -1058,9 +1193,28 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 		for ( int x = 0 ; x < w ; ++x ) {
 		  if ( x + cx < 0 || x + cx >= w )
 		    continue;
-		  (*current)[y*w*3+x*3+0]+= pixels[x+cx].red;
-		  (*current)[y*w*3+x*3+1]+= pixels[x+cx].green;
-		  (*current)[y*w*3+x*3+2]+= pixels[x+cx].blue;
+		  long dark_red = 0;
+		  long dark_green = 0;
+		  long dark_blue = 0;
+		  double k_red = 1.;
+		  double k_green = 1.;
+		  double k_blue = 1.;
+		  if ( n_darks > 0 )
+		    {
+		      dark_red = dark[(y+cy)*w*3+(x+cx)*3+0] / n_darks;
+		      dark_green = dark[(y+cy)*w*3+(x+cx)*3+1] / n_darks;
+		      dark_blue = dark[(y+cy)*w*3+(x+cx)*3+2] / n_darks;
+		    }
+		  if ( n_flats > 0 )
+		    {
+		      k_red = double(flat_red)/double(flat[(y+cy)*w*3+(x+cx)*3+0] );
+		      k_green = double(flat_green)/double(flat[(y+cy)*w*3+(x+cx)*3+1] );
+		      k_blue = double(flat_blue)/double(flat[(y+cy)*w*3+(x+cx)*3+2] );
+		    }
+		  
+		  light[y*w*3+x*3+0]+= (k_red * long(pixels[x+cx].red) ) - dark_red;
+		  light[y*w*3+x*3+1]+= (k_green * long(pixels[x+cx].green) ) - dark_green;
+		  light[y*w*3+x*3+2]+= (k_blue * long(pixels[x+cx].blue) ) - dark_blue;
 		}
 	      }
 	      #pragma omp barrier
@@ -1074,9 +1228,12 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	for ( int y = 0 ; y < h ; ++y ) {
 	  PixelPacket *pixels = pixel_cache.get(0,y,w,1);
 	  for ( int x = 0 ; x < w ; ++x ) {
-	    pixels[x].red =   double((*current)[y*w*3+x*3+0]) / n_lights;
-	    pixels[x].green = double((*current)[y*w*3+x*3+1]) / n_lights;
-	    pixels[x].blue =  double((*current)[y*w*3+x*3+2]) / n_lights;
+	    long red = double(light[y*w*3+x*3+0]) / n_lights;
+	    long green = double(light[y*w*3+x*3+1]) / n_lights;
+	    long blue = double(light[y*w*3+x*3+2]) / n_lights;
+	    pixels[x].red = clamp(red, 0L, long(QuantumRange));
+	    pixels[x].green = clamp(green, 0L, long(QuantumRange));
+	    pixels[x].blue = clamp(blue, 0L, long(QuantumRange));
 	  }
 	}
 	#pragma omp barrier
@@ -1084,8 +1241,6 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	free(flat);
 	free(dark);
 	free(light);
-	//free(*current);
-	
       }
       
 
@@ -3454,19 +3609,21 @@ class Process : public Object {
     void getBlob(int newmaxsize,Magick::Blob * blob) {
 
         Lock l1(crit);
+        bool force=false;
         if ( newmaxsize != maxsize ) {
                 maxsize=newmaxsize;
-                ptr<op::Operator> loader = operators.front();
-                loader->mod("maxsize",itostring(maxsize));
+                ptr<op::GenericLoad> loader = operators.front();
+		loader->setMaxSize(maxsize);
+		force = true;
         }
 
-        bool force=false;
         ptr<op::Operator> lop=NULL;
         for ( Vector<ptr<op::Operator> >::iterator op = operators.begin();
               op != operators.end();
               ++op ) {
               lop=(*op);
               force=lop->apply(force);
+	      
               if ( lop->getId() == upTo )
                  break;
         }
