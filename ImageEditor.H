@@ -1619,9 +1619,11 @@ void unLabize(Image &image, Image &labImage) {
 
 		iGamma(image,imageInfo.gamma,imageInfo.non_linear_range,true); //  g -> linear
 		iGamma(curve,imageInfo.gamma,imageInfo.non_linear_range,true); //  g -> linear
+		
+		curve.sigmoidalContrast(mod("sharpen").toi(),mod("contrast").tof(),QuantumRange/mod("mpdiv").tof());
+		
             if (!lab) {
                     image.sigmoidalContrast(mod("sharpen").toi(),mod("contrast").tof(),QuantumRange/mod("mpdiv").tof());
-                    curve.sigmoidalContrast(mod("sharpen").toi(),mod("contrast").tof(),QuantumRange/mod("mpdiv").tof());
 		}
             else {
                 //in lab colorspace

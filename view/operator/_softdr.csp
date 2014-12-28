@@ -16,8 +16,8 @@ Dynamic Range =<select name="dynamic_range" onchange="<%:prototype::Ajax url="/e
                                 %>"/>
 <%
 	{
-	const char *dec[] =  { "", ".1667", ".3333",  ".5", ".6667", ".8333" };
-	const char *frac[] = { "", "+1/6", "+1/3", "+1/2", "+2/3", "+5/6" };
+	const char *dec[] =  { "", ".0833", ".1667", ".25",  ".3333", ".4167", ".5",   ".5833", ".6667", ".75", ".8333", ".9167" };
+	const char *frac[] = { "", "+1/12", "+1/6" , "+1/4", "+1/3",  "+5/12", "+1/2", "+7/12", "+2/3", "+3/4", "+5/6", "+11/12" };
 
 	for ( int i = 0 ; i <= 16 ; ++i )
 	    for ( unsigned int j = 0 ; j < sizeof(dec)/sizeof(*dec) ; ++j ) {
@@ -59,8 +59,8 @@ Exposure = <select name="val" onchange="<%:prototype::Ajax url="/edit.C"+request
                                 %>"/>
 <%
 	{
-	const char *dec[] =  { ".8333", ".6667", ".5", ".3333", ".1667", "" };
-	const char *frac[] = { "+5/6", "+2/3", "+1/2", "+1/3", "+1/6", "" };
+	const char *dec[] =  { ".9167",  ".8333", ".75",  ".6667", ".5833", ".5",   ".4167", ".3333", ".25", ".1667", ".0833", "" };
+	const char *frac[] = { "+11/12", "+5/6",  "+3/4", "+2/3",  "+7/12", "+1/2", "+5/12", "+1/3",  "+1/4", "+1/6", "+1/12", "" };
 
 	for ( int i = 12 ; i >= 0 ; --i )
 	    for ( unsigned int j = 0 ; j < sizeof(dec)/sizeof(*dec) ; ++j ) {

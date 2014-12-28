@@ -32,72 +32,21 @@ Value = <select name="value" onchange="<%:prototype::Ajax url="/edit.C"+request.
 				withTail="'&value='+this.value";
 				evalScripts=true;
 				%>"/>
-		<option value="25600" <%= (op->mod("value")=="25600"? "selected=\"selected\"":"" )%>>+8</option>
 
-		<option value="22784" <%= (op->mod("value")=="22784"? "selected=\"selected\"":"" )%>>+7 5/6</option>
-		<option value="20480" <%= (op->mod("value")=="20480"? "selected=\"selected\"":"" )%>>+7 2/3</option>
-		<option value="18048" <%= (op->mod("value")=="18048"? "selected=\"selected\"":"" )%>>+7 1/2</option>
-		<option value="16384" <%= (op->mod("value")=="16384"? "selected=\"selected\"":"" )%>>+7 1/3</option>
-		<option value="14336" <%= (op->mod("value")=="14336"? "selected=\"selected\"":"" )%>>+7 1/6</option>
-
-		<option value="12800" <%= (op->mod("value")=="12800"? "selected=\"selected\"":"" )%>>+7</option>
-
-		<option value="11392" <%= (op->mod("value")=="11392"? "selected=\"selected\"":"" )%>>+6 5/6</option>
-		<option value="10240" <%= (op->mod("value")=="10240"? "selected=\"selected\"":"" )%>>+6 2/3</option>
-		<option value="9024" <%= (op->mod("value")=="9024"? "selected=\"selected\"":"" )%>>+6 1/2</option>
-		<option value="8192" <%= (op->mod("value")=="8192"? "selected=\"selected\"":"" )%>>+6 1/3</option>
-		<option value="7168" <%= (op->mod("value")=="7168"? "selected=\"selected\"":"" )%>>+6 1/6</option>
-
-		<option value="6400" <%= (op->mod("value")=="6400"? "selected=\"selected\"":"" )%>>+6</option>
-
-		<option value="5696" <%= (op->mod("value")=="5696"? "selected=\"selected\"":"" )%>>+5 5/6</option>
-		<option value="5120" <%= (op->mod("value")=="5120"? "selected=\"selected\"":"" )%>>+5 2/3</option>
-		<option value="4512" <%= (op->mod("value")=="4512"? "selected=\"selected\"":"" )%>>+5 1/2</option>
-		<option value="4096" <%= (op->mod("value")=="4096"? "selected=\"selected\"":"" )%>>+5 1/3</option>
-		<option value="3584" <%= (op->mod("value")=="3584"? "selected=\"selected\"":"" )%>>+5 1/6</option>
-
-		<option value="3200" <%= (op->mod("value")=="3200"? "selected=\"selected\"":"" )%>>+5</option>
-
-		<option value="2848" <%= (op->mod("value")=="2848"? "selected=\"selected\"":"" )%>>+4 5/6</option>
-		<option value="2560" <%= (op->mod("value")=="2560"? "selected=\"selected\"":"" )%>>+4 2/3</option>
-		<option value="2256" <%= (op->mod("value")=="2256"? "selected=\"selected\"":"" )%>>+4 1/2</option>
-		<option value="2048" <%= (op->mod("value")=="2048"? "selected=\"selected\"":"" )%>>+4 1/3</option>
-		<option value="1792" <%= (op->mod("value")=="1792"? "selected=\"selected\"":"" )%>>+4 1/6</option>
-
-		<option value="1600" <%= (op->mod("value")=="1600"? "selected=\"selected\"":"" )%>>+4</option>
-
-		<option value="1424" <%= (op->mod("value")=="1424"? "selected=\"selected\"":"" )%>>+3 5/6</option>
-		<option value="1280" <%= (op->mod("value")=="1280"? "selected=\"selected\"":"" )%>>+3 2/3</option>
-		<option value="1128" <%= (op->mod("value")=="1128"? "selected=\"selected\"":"" )%>>+3 1/2</option>
-		<option value="1024" <%= (op->mod("value")=="1024"? "selected=\"selected\"":"" )%>>+3 1/3</option>
-		<option value="896" <%= (op->mod("value")=="896"? "selected=\"selected\"":"" )%>>+3 1/6</option>
-
-		<option value="800" <%= (op->mod("value")=="800"? "selected=\"selected\"":"" )%>>+3 </option>
-
-		<option value="712" <%= (op->mod("value")=="712"? "selected=\"selected\"":"" )%>>+2 5/6</option>
-		<option value="640" <%= (op->mod("value")=="640"? "selected=\"selected\"":"" )%>>+2 2/3</option>
-		<option value="564" <%= (op->mod("value")=="564"? "selected=\"selected\"":"" )%>>+2 1/2</option>
-		<option value="512" <%= (op->mod("value")=="512"? "selected=\"selected\"":"" )%>>+2 1/3</option>
-		<option value="448" <%= (op->mod("value")=="448"? "selected=\"selected\"":"" )%>>+2 1/6</option>
-
-		<option value="400" <%= (op->mod("value")=="400"? "selected=\"selected\"":"" )%>>+2 </option>
-
-		<option value="356" <%= (op->mod("value")=="356"? "selected=\"selected\"":"" )%>>+1 5/6</option>
-		<option value="320" <%= (op->mod("value")=="320"? "selected=\"selected\"":"" )%>>+1 2/3</option>
-		<option value="282" <%= (op->mod("value")=="282"? "selected=\"selected\"":"" )%>>+1 1/2</option>
-		<option value="256" <%= (op->mod("value")=="256"? "selected=\"selected\"":"" )%>>+1 1/3</option>
-		<option value="224" <%= (op->mod("value")=="224"? "selected=\"selected\"":"" )%>>+1 1/6</option>
-
-		<option value="200" <%= (op->mod("value")=="200"? "selected=\"selected\"":"" )%>>+1</option>
-
-		<option value="178" <%= (op->mod("value")=="178"? "selected=\"selected\"":"" )%>>+5/6</option>
-		<option value="160" <%= (op->mod("value")=="160"? "selected=\"selected\"":"" )%>>+2/3</option>
-		<option value="141" <%= (op->mod("value")=="141"? "selected=\"selected\"":"" )%>>+1/2</option>
-		<option value="128" <%= (op->mod("value")=="128"? "selected=\"selected\"":"" )%>>+1/3</option>
-		<option value="112" <%= (op->mod("value")=="112"? "selected=\"selected\"":"" )%>>+1/6</option>
-
-		<option value="100" <%= (op->mod("value")=="100"? "selected=\"selected\"":"" )%>>-0-</option>
-
+<%
+ 	const int coef[] =  { 189,  178, 168,  160, 150, 141,   134, 128, 119, 112, 106, 100 };
+	const char *frac[] = { " 11/12", " 5/6",  " 3/4", " 2/3",  " 7/12", " 1/2", " 5/12", " 1/3",  " 1/4", " 1/6", " 1/12", "" };
+        for ( int i = 8 ; i >= 0 ; --i ) {
+	  for ( int j = 0 ; j < sizeof(coef)/sizeof(*coef) ; ++j ) {
+	    if ( 8 == i )
+	      j = sizeof(coef)/sizeof(*coef)-1;
+	    int mul = (1<<i) * coef[j];
+	    %><option value="<%=mul%>" <%= (op->mod("value").toi()==mul? "selected=\"selected\"":"" )
+                    %>><%= (i!=0?itostring(i):"")
+                    %><%= (i==0&&j==sizeof(coef)/sizeof(*coef)-1?"-0-":frac[j])%></option><%
+	  }
+	}
+ %>
 		<option value="89" <%= (op->mod("value")=="89"? "selected=\"selected\"":"" )%>>-1/6</option>
 		<option value="80" <%= (op->mod("value")=="80"? "selected=\"selected\"":"" )%>>-1/3</option>
 		<option value="71" <%= (op->mod("value")=="71"? "selected=\"selected\"":"" )%>>-1/2</option>
