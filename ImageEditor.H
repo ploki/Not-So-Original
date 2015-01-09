@@ -981,9 +981,11 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	int n_lights = 0;
 	int n_darks = 0;
 	int n_flats = 0;
+	int n_dflats = 0;
 	int w = -1, h = -1;
 	long *light = NULL,
 	  *dark = NULL,
+	  *dflat = NULL,
 	  *flat = NULL;
 	long flat_red = 0, flat_green = 0, flat_blue = 0;
 	bool first_frame = true;
@@ -995,7 +997,8 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	    String str=buf;
 	    Vector<String> elem = str.explode(":");
 	    if ( str.matches("^LIGHT:") ||
-		 str.matches("^FLAT:") )
+		 str.matches("^FLAT:") ||
+		 str.matches("^DFLAT:") )
 	      {
 		continue;
 	      }
@@ -1049,6 +1052,68 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	    pixel_cache.sync();
 	  }
 	
+	//dark flats
+	rewind(stack_desc);
+	while ( fgets(buf, 1024, stack_desc) )
+	  {
+	    String str=buf;
+	    Vector<String> elem = str.explode(":");
+	    if ( str.matches("^LIGHT:") ||
+		 str.matches("^FLAT:") ||
+		 str.matches("^DARK:") )
+	      {
+		continue;
+	      }
+	    else if ( str.matches("^DFLAT:") )
+	      {
+		++n_dflats;
+	      }
+	    else
+	      {
+		break;
+	      }
+
+	    log(" ********* DFLAT : N="+itostring(n_dflats));
+	    doRawJob(elem[1]);
+	    if ( w == -1 && h == -1 )
+	      {
+		w = image.columns();
+		h = image.rows();
+	      }
+	    else
+	      {
+		if ( w != signed(image.columns()) || h != signed(image.rows()) )
+		  throw OperatorException("Image of invalid size found in batch");
+	      }
+
+	    if ( dflat == NULL )
+	      {
+		log("allocating "+itostring(h*w*3*sizeof(*dark))+" bytes for dark flats");
+		dflat = (long*)calloc(1,h*w*3*sizeof(*dflat));
+	      }
+	    if ( dflat == NULL )
+	      throw OperatorException("Not enough memory");
+
+	    Pixels pixel_cache(image);
+            #pragma omp parallel for
+	    for ( int y = 0 ; y < h ; ++y ) {
+	      PixelPacket *pixels;
+	      try {
+		pixels = pixel_cache.get(0,y,w,1);
+	      }
+	      catch(...) {
+		throw OperatorException("pixel_cache.get");
+	      }
+	      for ( int x = 0 ; x < w ; ++x ) {
+		dflat[y*w*3+x*3+0]+= pixels[x].red;
+		dflat[y*w*3+x*3+1]+= pixels[x].green;
+		dflat[y*w*3+x*3+2]+= pixels[x].blue;
+	      }
+	    }
+            #pragma omp barrier
+	    pixel_cache.sync();
+	  }
+
 	//flats
 	rewind(stack_desc);
 	while ( fgets(buf, 1024, stack_desc) )
@@ -1056,7 +1121,8 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	    String str=buf;
 	    Vector<String> elem = str.explode(":");
 	    if ( str.matches("^LIGHT:") ||
-		 str.matches("^DARK:") )
+		 str.matches("^DARK:") ||
+		 str.matches("^DFLAT:") )
 	      {
 		continue;
 	      }
@@ -1101,9 +1167,20 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 		throw OperatorException("pixel_cache.get");
 	      }
 	      for ( int x = 0 ; x < w ; ++x ) {
-		flat[y*w*3+x*3+0]+= pixels[x].red;
-		flat[y*w*3+x*3+1]+= pixels[x].green;
-		flat[y*w*3+x*3+2]+= pixels[x].blue;
+
+		long dflat_red = 0,
+		  dflat_green = 0,
+		  dflat_blue=0;
+		if ( n_dflats > 0 )
+		    {
+		      dflat_red =   dflat[y*w*3+x*3+0] / n_dflats;
+		      dflat_green = dflat[y*w*3+x*3+1] / n_dflats;
+		      dflat_blue =  dflat[y*w*3+x*3+2] / n_dflats;
+		    }
+
+		flat[y*w*3+x*3+0]+= ( pixels[x].red - dflat_red );
+		flat[y*w*3+x*3+1]+= ( pixels[x].green - dflat_green );
+		flat[y*w*3+x*3+2]+= ( pixels[x].blue - dflat_blue );
 		if ( flat[y*w*3+x*3+0] > flat_red )
 		  flat_red = flat[y*w*3+x*3+0];
 		if ( flat[y*w*3+x*3+1] > flat_green )
@@ -1129,7 +1206,8 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 		++n_lights;
 	      }
 	    else if ( str.matches("^DARK:") ||
-		      str.matches("^FLAT:") )
+		      str.matches("^FLAT:") ||
+		      str.matches("^DFLAT:") )
 	      {
 		continue;
 	      }
@@ -1212,9 +1290,9 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 		      k_blue = double(flat_blue)/double(flat[(y+cy)*w*3+(x+cx)*3+2] );
 		    }
 		  
-		  light[y*w*3+x*3+0]+= (k_red * long(pixels[x+cx].red) ) - dark_red;
-		  light[y*w*3+x*3+1]+= (k_green * long(pixels[x+cx].green) ) - dark_green;
-		  light[y*w*3+x*3+2]+= (k_blue * long(pixels[x+cx].blue) ) - dark_blue;
+		  light[y*w*3+x*3+0]+= k_red   * (long(pixels[x+cx].red)   - dark_red );
+		  light[y*w*3+x*3+1]+= k_green * (long(pixels[x+cx].green) - dark_green );
+		  light[y*w*3+x*3+2]+= k_blue  * (long(pixels[x+cx].blue)  - dark_blue );
 		}
 	      }
 	      #pragma omp barrier
