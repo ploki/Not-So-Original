@@ -126,6 +126,14 @@ class SERVLET(image) : public HttpServlet {
                                 hitImage("download",path_encode(url_decode(realpath)));
 			
                         response.setContentType(contentType);
+			struct stat st;
+			int ret;
+			ret = stat((root+filename).c_str(), &st);
+			if ( ret < 0 )
+			  {
+			    throw ServletException("stat failed");
+			  }
+			response.setContentLength(st.st_size);
 
                         FILE *f=fopen((root+filename).c_str(),"r");
                         try {

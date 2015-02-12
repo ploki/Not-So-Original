@@ -152,23 +152,9 @@ if ( request.getPathInfo() != String("/") ) {
  if ( false || typeMime.substr(0,5) != "video" ) { %>
   <a href="<%= request.getContextPath() %>/image.C<%= path_encode(url_decode(request.getPathInfo()))%>?action=image" ><img id="preview" src="<%= request.getContextPath() %>/image.C<%= path_encode(url_decode(request.getPathInfo()))%>?action=preview" alt="preview" /></a>
 <% } else { %>
-
-      <object
-        id="NSPlay" classid="CLSID:22d6f312-b0f6-11d0-94ab-0080c74c7e95"  codebase="http://www.microsoft.com/netshow/download/en/nsasfinf.cab#Version=2,0,0,912"   viewastext=""  width="640" height="480">
-        <param name="ControlType" value="1">
-        <param name="filename" value="<%= request.getContextPath() %>/image.C<%=path_encode(url_decode(request.getPathInfo()))%>?action=image">
-        <param name="AutoStart" value="true">
-        <param name="AnimationStart" value="true">
-
-        <param name="TransparentAtStart" value="false">
-        <param name="ShowControls" value="false">
-        <PARAM NAME="ShowStatusBar" VALUE="True">
-
-        <embed src="<%= request.getContextPath() %>/image.C<%=path_encode(url_decode(request.getPathInfo()))%>?action=image" type="application/x-mplayer2" Displaysize="4" autostart="1" enabled="1" showstatusbar="1" showdisplay="0" showcontrols="0" pluginspage="http://www.microsoft.com/Windows/MediaPlayer/" CODEBASE="http://activex.microsoft.com/activex/controls/mplayer/en/nsmp2inf.cab#Version=6,0,0,0" width="640" height="480"></embed>
-      </object>
-<!--
-     <video width="640" height="480" autoplay="true" src="<%= request.getContextPath() %>/image.C<%=path_encode(url_decode(request.getPathInfo()))%>?action=image"/>
--->
+     <video width="720" height="720"  autoplay="true" controls>
+         <source src="<%= request.getContextPath() %>/image.C<%=path_encode(url_decode(request.getPathInfo()))%>?action=image"/>
+     </video>
         <div>
         <a href="<%= request.getContextPath() %>/image.C<%= path_encode(url_decode(request.getPathInfo()))%>?action=image" >Télécharger le film</a>
         </div>
