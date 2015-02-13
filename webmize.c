@@ -203,10 +203,11 @@ convert_video(FTSENT *ftsent)
 	  ret = rename(ftsent->fts_path, target);
 	  if ( ret < 0 )
 	    {
-	      ERROR("rename(%s, %s): ", ftsent->fts_path, target);
+	      ERROR("rename(%s, %s): %s", ftsent->fts_path, target, strerror(errno));
 	      ret = 1;
 	      goto end;
 	    }
+	  continue;
 	}
       else if ( errno != ENOENT )
 	{
