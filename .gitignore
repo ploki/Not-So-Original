@@ -2,4 +2,4 @@ Image.o
 common.o
 libGallery_model.so
 thumbnailer
-
+webmize

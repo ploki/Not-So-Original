@@ -207,7 +207,8 @@ convert_video(FTSENT *ftsent)
 	      ret = 1;
 	      goto end;
 	    }
-	  continue;
+	  ret = 0;
+	  goto end;
 	}
       else if ( errno != ENOENT )
 	{
