@@ -39,6 +39,7 @@ CREATE TABLE gallery_process (
 #include <Magick++.h>
 #include "CIELab.H"
 #include "Profile.H"
+#include <apr_md5.h>
 
 using namespace Magick;
 namespace op {
@@ -387,8 +388,10 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 
 				}
 			
+				pclose(f);
 			}
-			pclose(f);
+			else
+			  throw OperatorException("'popen dcraw -i -v \""+path+"\"' failed: "+strerror(errno));
 		}
 	
 	};
@@ -1319,30 +1322,58 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	free(flat);
 	free(dark);
 	free(light);
+	free(dflat);
       }
       
 
       
         void doRawJob(String& filename) {
-
+	  bool read_cached = false;
 	  String tfile = getTmpFile(filename);
 	  String dcraw_command_line = getDcrawCommandLine(filename, tfile);
 
-           int res __attribute__((unused));
-           {
-                Profile prof("dcraw");
-                Logger log("dcraw");log.debug(dcraw_command_line);
-                res = system(dcraw_command_line.c_str());
-           }
-           {
+	  unsigned char digest[APR_MD5_DIGESTSIZE];
+	  apr_status_t status = apr_md5(digest, dcraw_command_line.c_str(), dcraw_command_line.size());
+	  if ( APR_SUCCESS != status )
+	    throw OperatorException("Cmdline MD5");
+
+	  String cached = mod("tmp") + "/dcraw_cache/";
+	  for ( int i = 0 ; i < APR_MD5_DIGESTSIZE ; ++i )
+	    {
+	      unsigned int j;
+	      j = ((digest[i] & 0xf0)>>4);
+	      cached += ( j < 10 ? j+'0' : j+'a'-10);
+	      j = (digest[i] & 0x0f);
+	      cached += ( j < 10 ? j+'0' : j+'a'-10);
+	    }
+	  cached+=".ppm";
+
+	  try
+	    {
+                Profile prof("image.read_cached");
+		image.read(cached);
+		read_cached = true;
+	    }
+	  catch(...) {}
+
+	  if ( !read_cached )
+	    {
+	      int res __attribute__((unused));
+	      {
+		Profile prof("dcraw");
+		Logger log("dcraw");log.debug(dcraw_command_line);
+		res = system(dcraw_command_line.c_str());
+	      }
+	      {
                 Profile prof("image.read");
                 image.read(tfile);
-           }
-                unlink(tfile.c_str());
-
-		doHotPixels();
-		
-		doInterpolate();
+	      }
+	      link(tfile.c_str(), cached.c_str());
+	      unlink(tfile.c_str());
+	    }
+	  doHotPixels();
+	  
+	  doInterpolate();
         }
 
       void doInterpolate() {
