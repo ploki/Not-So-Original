@@ -13,31 +13,15 @@ Dynamic Range =<select name="dynamic_range" onchange="<%:prototype::Ajax url="/e
                                 with["name"]="dynamic_range";
                                 withTail="'&value='+this.value";
                                 evalScripts=true;
-                                %>"/>
-                <option value="0.5" <%= (op->mod("dynamic_range")=="0.5"? "selected=\"selected\"":"" )%>>1/2</option>
-                <option value="1" <%= (op->mod("dynamic_range")=="1"? "selected=\"selected\"":"" )%>>1</option>
-                <option value="1.5" <%= (op->mod("dynamic_range")=="1.5"? "selected=\"selected\"":"" )%>>1 1/2</option>
-                <option value="2" <%= (op->mod("dynamic_range")=="2"? "selected=\"selected\"":"" )%>>2</option>
-                <option value="2.5" <%= (op->mod("dynamic_range")=="2.5"? "selected=\"selected\"":"" )%>>2 1/2</option>
-                <option value="3" <%= (op->mod("dynamic_range")=="3"? "selected=\"selected\"":"" )%>>3</option>
-                <option value="3.5" <%= (op->mod("dynamic_range")=="3.5"? "selected=\"selected\"":"" )%>>3 1/2</option>
-                <option value="4" <%= (op->mod("dynamic_range")=="4"? "selected=\"selected\"":"" )%>>4</option>
-                <option value="4.5" <%= (op->mod("dynamic_range")=="4.5"? "selected=\"selected\"":"" )%>>4 1/2</option>
-                <option value="5" <%= (op->mod("dynamic_range")=="5"? "selected=\"selected\"":"" )%>>5</option>
-                <option value="5.5" <%= (op->mod("dynamic_range")=="5.5"? "selected=\"selected\"":"" )%>>5 1/2</option>
-                <option value="6" <%= (op->mod("dynamic_range")=="6"? "selected=\"selected\"":"" )%>>6</option>
-                <option value="6.5" <%= (op->mod("dynamic_range")=="6.5"? "selected=\"selected\"":"" )%>>6 1/2</option>
-                <option value="7" <%= (op->mod("dynamic_range")=="7"? "selected=\"selected\"":"" )%>>7</option>
-                <option value="7.5" <%= (op->mod("dynamic_range")=="7.5"? "selected=\"selected\"":"" )%>>7 1/2</option>
-                <option value="8" <%= (op->mod("dynamic_range")=="8"? "selected=\"selected\"":"" )%>>8</option>
-                <option value="8.5" <%= (op->mod("dynamic_range")=="8.5"? "selected=\"selected\"":"" )%>>8 1/2</option>
-                <option value="9" <%= (op->mod("dynamic_range")=="9"? "selected=\"selected\"":"" )%>>9</option>
-                <option value="9.5" <%= (op->mod("dynamic_range")=="9.5"? "selected=\"selected\"":"" )%>>9 1/2</option>
-                <option value="10" <%= (op->mod("dynamic_range")=="10"? "selected=\"selected\"":"" )%>>10</option>
-                <option value="10.5" <%= (op->mod("dynamic_range")=="10.5"? "selected=\"selected\"":"" )%>>10 1/2</option>
-                <option value="11" <%= (op->mod("dynamic_range")=="11"? "selected=\"selected\"":"" )%>>11</option>
-                <option value="11.5" <%= (op->mod("dynamic_range")=="11.5"? "selected=\"selected\"":"" )%>>11 1/2</option>
-                <option value="12" <%= (op->mod("dynamic_range")=="12"? "selected=\"selected\"":"" )%>>12</option>
+                                %>"/><%
+      const char *frac_label[] = { "", " 1/12", " 1/6", " 1/4", " 1/3", " 5/12", " 1/2" , " 7/12", " 2/3", " 3/4", " 5/6", " 11/12" };
+const char *frac[] = { "", ".08333", ".16667", ".25", ".33333", ".41667", ".5", ".58333", ".66667", ".75", ".83333", ".91667" };
+      for ( int i = 0 ; i < 14 ; ++i )
+	  for ( unsigned int j = 0 ; j < sizeof(frac)/sizeof(*frac) ; ++j )
+	  {
+	      %><option value="<%=itostring(i)+frac[j]%>" <%= (op->mod("dynamic_range")==itostring(i)+frac[j]? "selected=\"selected\"":"" )%>><%=itostring(i)+frac_label[j]%></option><%  
+	  }
+%>
         </select> IL
 <br/>
 Restore gray point with gamma = <select name="restore_gp" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
