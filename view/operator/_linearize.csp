@@ -3,10 +3,12 @@
 #include <Prototype/all.H>
 %><%
 ptr<op::Operator> op = request.getAttribute("operator");
+String dyn_range_id = "linearize_dyn_range_"+itostring(op->getId());
+
 %>
 replace gamma, with a linear projection of nEV on 256 values<br/>
 <hr/>
-Dynamic Range =<select name="dynamic_range" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+Dynamic Range =<select id="<%=dyn_range_id%>" name="dynamic_range" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
                                 update="stack";
                                 with["operator"]=itostring(op->getId());
                                 with["action"]="silent_mod";
@@ -23,6 +25,8 @@ const char *frac[] = { "", ".08333", ".16667", ".25", ".33333", ".41667", ".5", 
 	  }
 %>
         </select> IL
+<input type="button" value="-" onclick="decr_selection('<%=dyn_range_id%>'); return false;"/>
+<input type="button" value="+" onclick="incr_selection('<%=dyn_range_id%>'); return false;"/>
 <br/>
 Restore gray point with gamma = <select name="restore_gp" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
                                     update="stack";

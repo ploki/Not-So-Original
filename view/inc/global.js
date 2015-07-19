@@ -91,3 +91,13 @@ function toggle_div(classname) {
 		}
 }
 
+function decr_selection(elem_id) {
+    var elem = document.getElementById(elem_id);
+    elem.selectedIndex-=1;
+    elem.onchange();
+}
+function incr_selection(elem_id) {
+    var elem = document.getElementById(elem_id);
+    elem.selectedIndex+=1;
+    elem.onchange();
+}

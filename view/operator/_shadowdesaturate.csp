@@ -3,10 +3,11 @@
 #include <Prototype/all.H>
 %><%
 ptr<op::Operator> op = request.getAttribute("operator");
+String limit_id = "softdr_high_limit_"+itostring(op->getId());
 %>
 replace gamma, with a log-sinus projection of nEV on 256 values<br/>
 <hr/>
-Higher limit=<select name="high" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+Higher limit=<select id="<%=limit_id%>" name="high" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
                                 update="stack";
                                 with["operator"]=itostring(op->getId());
                                 with["action"]="silent_mod";
@@ -48,6 +49,8 @@ Higher limit=<select name="high" onchange="<%:prototype::Ajax url="/edit.C"+requ
                 <option value="15.5" <%= (op->mod("high")=="15.5"? "selected=\"selected\"":"" )%>>15 1/2</option>
                 <option value="16" <%= (op->mod("high")=="16"? "selected=\"selected\"":"" )%>>16</option>
         </select> IL
+<input type="button" value="-" onclick="decr_selection('<%=limit_id%>'); return false;"/>
+<input type="button" value="+" onclick="incr_selection('<%=limit_id%>'); return false;"/>
 <br/>
 Range = <input type="text" name="range" value="<%=op->mod("range")%>"
                onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();

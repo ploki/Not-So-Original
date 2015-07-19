@@ -3,6 +3,7 @@
 #include <Prototype/all.H>
 %><%
 ptr<op::Operator> op = request.getAttribute("operator");
+String exp_id = "modulate_exp_"+itostring(op->getId());
 %>
 Modulate saturation and value by percents and hue by degrees
 <hr/>
@@ -24,7 +25,7 @@ Saturation = <input type="text" name="saturation" value="<%=op->mod("saturation"
                                   withTail="'&value='+this.value";
                                   evalScripts=true;%>" />
 <br/>
-Value = <select name="value" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+Value = <select id="<%=exp_id%>" name="value" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
 				update="stack";
 				with["operator"]=itostring(op->getId());
 				with["action"]="silent_mod";
@@ -67,6 +68,8 @@ Value = <select name="value" onchange="<%:prototype::Ajax url="/edit.C"+request.
 
 		<option value="6.25" <%= (op->mod("value")=="6.25"? "selected=\"selected\"":"" )%>>-4</option>
 	</select> IL
+<input type="button" value="-" onclick="incr_selection('<%=exp_id%>'); return false;"/>
+<input type="button" value="+" onclick="decr_selection('<%=exp_id%>'); return false;"/>
 <hr/>
 Lab = <select name="lab" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
                                     update="stack";

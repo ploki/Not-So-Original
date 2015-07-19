@@ -3,6 +3,7 @@
 #include <Prototype/all.H>
 %><%
 ptr<op::Operator> op = request.getAttribute("operator");
+String dyn_range_id = "igamma_dyn_range_"+itostring(op->getId());
 %>
 iGamma<br/>
 <hr/>
@@ -15,7 +16,7 @@ Gamma = <input type="text" name="radius" value="<%=op->mod("gamma")%>"
                                   withTail="'&value='+this.value";
                                   evalScripts=true;%>" />
 <br/>
-Dynamic Range =<select name="dynamic_range" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+Dynamic Range =<select id="<%=dyn_range_id%>" name="dynamic_range" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
                                 update="stack";
                                 with["operator"]=itostring(op->getId());
                                 with["action"]="silent_mod";
@@ -58,6 +59,8 @@ Dynamic Range =<select name="dynamic_range" onchange="<%:prototype::Ajax url="/e
                 <option value="15.5" <%= (op->mod("dynamic_range")=="15.5"? "selected=\"selected\"":"" )%>>15 1/2</option>
                 <option value="16" <%= (op->mod("dynamic_range")=="16"? "selected=\"selected\"":"" )%>>16</option>
         </select> IL
+<input type="button" value="-" onclick="decr_selection('<%=dyn_range_id%>'); return false;"/>
+<input type="button" value="+" onclick="incr_selection('<%=dyn_range_id%>'); return false;"/>
 <br/>
 revert = <select name="invert" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
                                     update="stack";

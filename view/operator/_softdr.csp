@@ -3,10 +3,12 @@
 #include <Prototype/all.H>
 %><%
 ptr<op::Operator> op = request.getAttribute("operator");
+String dyn_range_id = "softdr_dyn_range_"+itostring(op->getId());
+String exp_id = "softdr_exp_"+itostring(op->getId());
 %>
 replace gamma, with a log-sinus projection of nEV on 256 values<br/>
 <hr/>
-Dynamic Range =<select name="dynamic_range" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+Dynamic Range =<select id="<%=dyn_range_id%>" name="dynamic_range" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
                                 update="stack";
                                 with["operator"]=itostring(op->getId());
                                 with["action"]="silent_mod";
@@ -30,6 +32,9 @@ Dynamic Range =<select name="dynamic_range" onchange="<%:prototype::Ajax url="/e
 	}
 %>
         </select> IL
+
+<input type="button" value="-" onclick="decr_selection('<%=dyn_range_id%>'); return false;"/>
+<input type="button" value="+" onclick="incr_selection('<%=dyn_range_id%>'); return false;"/>
 <br/>
 red diff = <input type="text" name="red_diff" value="<%=op->mod("red_diff")%>"
                onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
@@ -49,7 +54,7 @@ blue diff = <input type="text" name="blue_diff" value="<%=op->mod("blue_diff")%>
                                   withTail="'&value='+this.value";
                                   evalScripts=true;%>" />
 <hr/>
-Exposure = <select name="val" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+Exposure = <select id="<%=exp_id%>" name="val" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
                                 update="stack";
                                 with["operator"]=itostring(op->getId());
                                 with["action"]="silent_mod";
@@ -71,6 +76,9 @@ Exposure = <select name="val" onchange="<%:prototype::Ajax url="/edit.C"+request
 	}
  %>
         </select> IL
+<input type="button" value="-" onclick="incr_selection('<%=exp_id%>'); return false;"/>
+<input type="button" value="+" onclick="decr_selection('<%=exp_id%>'); return false;"/>
+
 <hr/>
 
 Lab = <select name="lab" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
