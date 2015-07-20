@@ -980,17 +980,18 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
       void doStackJob(String& filename) {
 	Logger log("stackjob"); log.error();
 	FILE *stack_desc = fopen((mod("root")+filename).c_str(), "r");
+	typedef unsigned int stack_t;
 	char buf[1024];
 	int n_lights = 0;
 	int n_darks = 0;
 	int n_flats = 0;
 	int n_dflats = 0;
 	int w = -1, h = -1;
-	long *light = NULL,
+	stack_t *light = NULL,
 	  *dark = NULL,
 	  *dflat = NULL,
 	  *flat = NULL;
-	long flat_red = 0, flat_green = 0, flat_blue = 0;
+	stack_t flat_red = 0, flat_green = 0, flat_blue = 0;
 	bool first_frame = true;
 	int ff_x = 0, ff_y=0;
 
@@ -1030,7 +1031,7 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	    if ( dark == NULL )
 	      {
 		log("allocating "+itostring(h*w*3*sizeof(*dark))+" bytes for darks");
-		dark = (long*)calloc(1,h*w*3*sizeof(*dark));
+		dark = (stack_t*)calloc(1,h*w*3*sizeof(*dark));
 	      }
 	    if ( dark == NULL )
 	      throw OperatorException("Not enough memory");
@@ -1053,6 +1054,16 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	    }
             #pragma omp barrier
 	    pixel_cache.sync();
+	  }
+	if ( n_darks > 0 )
+	  {
+            #pragma omp parallel for
+	    for (int y = 0 ; y < h ; ++y )
+	      for ( int x = 0 ; x < w*3 ; ++x )
+		{
+		  dark[y*w*3 + x ] /= n_darks;
+		}
+            #pragma omp barrier
 	  }
 	
 	//dark flats
@@ -1092,7 +1103,7 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	    if ( dflat == NULL )
 	      {
 		log("allocating "+itostring(h*w*3*sizeof(*dark))+" bytes for dark flats");
-		dflat = (long*)calloc(1,h*w*3*sizeof(*dflat));
+		dflat = (stack_t*)calloc(1,h*w*3*sizeof(*dflat));
 	      }
 	    if ( dflat == NULL )
 	      throw OperatorException("Not enough memory");
@@ -1115,6 +1126,16 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	    }
             #pragma omp barrier
 	    pixel_cache.sync();
+	  }
+	if ( n_dflats > 0 )
+	  {
+            #pragma omp parallel for
+	    for (int y = 0 ; y < h ; ++y )
+	      for ( int x = 0 ; x < w*3 ; ++x )
+		{
+		  dflat[y*w*3 + x ] /= n_dflats;
+		}
+            #pragma omp barrier
 	  }
 
 	//flats
@@ -1154,7 +1175,7 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	    if ( flat == NULL )
 	      {
 		log("allocating "+itostring(h*w*3*sizeof(*flat))+" bytes for flats");
-		flat = (long*)calloc(1,h*w*3*sizeof(*flat));
+		flat = (stack_t*)calloc(1,h*w*3*sizeof(*flat));
 	      }
 	    if ( flat == NULL )
 	      throw OperatorException("Not enough memory");
@@ -1171,16 +1192,22 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	      }
 	      for ( int x = 0 ; x < w ; ++x ) {
 
-		long dflat_red = 0,
+		stack_t dflat_red = 0,
 		  dflat_green = 0,
 		  dflat_blue=0;
 		if ( n_dflats > 0 )
 		    {
-		      dflat_red =   dflat[y*w*3+x*3+0] / n_dflats;
-		      dflat_green = dflat[y*w*3+x*3+1] / n_dflats;
-		      dflat_blue =  dflat[y*w*3+x*3+2] / n_dflats;
+		      dflat_red =   dflat[y*w*3+x*3+0];
+		      dflat_green = dflat[y*w*3+x*3+1];
+		      dflat_blue =  dflat[y*w*3+x*3+2];
 		    }
-
+		if ( dflat_red > pixels[x].red )
+		  dflat_red = pixels[x].red;
+		if ( dflat_green > pixels[x].green )
+		  dflat_green = pixels[x].green;
+		if ( dflat_blue > pixels[x].blue )
+		  dflat_blue = pixels[x].blue;
+		
 		flat[y*w*3+x*3+0]+= ( pixels[x].red - dflat_red );
 		flat[y*w*3+x*3+1]+= ( pixels[x].green - dflat_green );
 		flat[y*w*3+x*3+2]+= ( pixels[x].blue - dflat_blue );
@@ -1233,7 +1260,7 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	    if ( light == NULL )
 	      {
 		log("allocating "+itostring(h*w*3*sizeof(*light))+" bytes for lights");
-		light = (long*)calloc(1,h*w*3*sizeof(*light));
+		light = (stack_t*)calloc(1,h*w*3*sizeof(*light));
 	      }
 	    if ( light == NULL )
 	      throw OperatorException("Not enough memory");
@@ -1274,28 +1301,46 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 		for ( int x = 0 ; x < w ; ++x ) {
 		  if ( x + cx < 0 || x + cx >= w )
 		    continue;
-		  long dark_red = 0;
-		  long dark_green = 0;
-		  long dark_blue = 0;
-		  double k_red = 1.;
-		  double k_green = 1.;
-		  double k_blue = 1.;
+		  stack_t dark_red = 0;
+		  stack_t dark_green = 0;
+		  stack_t dark_blue = 0;
 		  if ( n_darks > 0 )
 		    {
-		      dark_red = dark[(y+cy)*w*3+(x+cx)*3+0] / n_darks;
-		      dark_green = dark[(y+cy)*w*3+(x+cx)*3+1] / n_darks;
-		      dark_blue = dark[(y+cy)*w*3+(x+cx)*3+2] / n_darks;
+		      dark_red = dark[(y+cy)*w*3+(x+cx)*3+0];
+		      dark_green = dark[(y+cy)*w*3+(x+cx)*3+1];
+		      dark_blue = dark[(y+cy)*w*3+(x+cx)*3+2];
+		      if ( dark_red > stack_t(pixels[x+cx].red) )
+			dark_red = stack_t(pixels[x+cx].red);
+		      if ( dark_green > stack_t(pixels[x+cx].green) )
+			dark_green = stack_t(pixels[x+cx].green);
+		      if ( dark_blue > stack_t(pixels[x+cx].blue) )
+			dark_blue = stack_t(pixels[x+cx].blue);
 		    }
 		  if ( n_flats > 0 )
 		    {
-		      k_red = double(flat_red)/double(flat[(y+cy)*w*3+(x+cx)*3+0] );
-		      k_green = double(flat_green)/double(flat[(y+cy)*w*3+(x+cx)*3+1] );
-		      k_blue = double(flat_blue)/double(flat[(y+cy)*w*3+(x+cx)*3+2] );
+		      stack_t cf_red   = flat[(y+cy)*w*3+(x+cx)*3+0];
+		      stack_t cf_green = flat[(y+cy)*w*3+(x+cx)*3+1];
+		      stack_t cf_blue  = flat[(y+cy)*w*3+(x+cx)*3+2];
+
+		      if ( 0 == cf_red ) cf_red = 1;
+		      if ( 0 == cf_green ) cf_green = 1;
+		      if ( 0 == cf_blue ) cf_blue = 1;
+		      light[y*w*3+x*3+0]+= flat_red  *
+			(stack_t(pixels[x+cx].red) - dark_red ) /
+			cf_red;
+		      light[y*w*3+x*3+1]+= flat_green *
+			(stack_t(pixels[x+cx].green) - dark_green ) /
+			cf_green;
+		      light[y*w*3+x*3+2]+= flat_blue  *
+			(stack_t(pixels[x+cx].blue)  - dark_blue ) /
+			cf_blue;
 		    }
-		  
-		  light[y*w*3+x*3+0]+= k_red   * (long(pixels[x+cx].red)   - dark_red );
-		  light[y*w*3+x*3+1]+= k_green * (long(pixels[x+cx].green) - dark_green );
-		  light[y*w*3+x*3+2]+= k_blue  * (long(pixels[x+cx].blue)  - dark_blue );
+		  else
+		    {
+		      light[y*w*3+x*3+0]+= (stack_t(pixels[x+cx].red)   - dark_red );
+		      light[y*w*3+x*3+1]+= (stack_t(pixels[x+cx].green) - dark_green );
+		      light[y*w*3+x*3+2]+= (stack_t(pixels[x+cx].blue)  - dark_blue );
+		    }
 		}
 	      }
 	      #pragma omp barrier
@@ -1309,12 +1354,12 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	for ( int y = 0 ; y < h ; ++y ) {
 	  PixelPacket *pixels = pixel_cache.get(0,y,w,1);
 	  for ( int x = 0 ; x < w ; ++x ) {
-	    long red = double(light[y*w*3+x*3+0]) / n_lights;
-	    long green = double(light[y*w*3+x*3+1]) / n_lights;
-	    long blue = double(light[y*w*3+x*3+2]) / n_lights;
-	    pixels[x].red = clamp(red, 0L, long(QuantumRange));
-	    pixels[x].green = clamp(green, 0L, long(QuantumRange));
-	    pixels[x].blue = clamp(blue, 0L, long(QuantumRange));
+	    stack_t red = double(light[y*w*3+x*3+0]) / n_lights;
+	    stack_t green = double(light[y*w*3+x*3+1]) / n_lights;
+	    stack_t blue = double(light[y*w*3+x*3+2]) / n_lights;
+	    pixels[x].red = clamp(red, stack_t(0), stack_t(QuantumRange));
+	    pixels[x].green = clamp(green, stack_t(0), stack_t(QuantumRange));
+	    pixels[x].blue = clamp(blue, stack_t(0), stack_t(QuantumRange));
 	  }
 	}
 	#pragma omp barrier
