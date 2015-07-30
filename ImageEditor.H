@@ -1222,7 +1222,20 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
             #pragma omp barrier
 	    pixel_cache.sync();
 	  }
-	
+	if ( n_flats > 0 )
+	  {
+            #pragma omp parallel for
+	    for (int y = 0 ; y < h ; ++y )
+	      for ( int x = 0 ; x < w*3 ; ++x )
+		{
+		  flat[y*w*3 + x ] /= n_flats;
+		}
+            #pragma omp barrier
+	    flat_red /= n_flats;
+	    flat_green /= n_flats;
+	    flat_blue /= n_flats;
+	  }
+
 
 
 	//lights
