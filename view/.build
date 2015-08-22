@@ -1,7 +1,6 @@
 -fopenmp -O9 -Wall -Wno-deprecated -Wno-attributes -Werror
--I/usr/include/ImageMagick-6 -I/usr/include/x86_64-linux-gnu/ImageMagick-6/
--lMagick++ 
+`pkg-config --cflags --libs Magick++`
 -I/usr/include/exiv2 -lexiv2
 -Wl,-rpath,/srv/src/gallery -L/srv/src/gallery -I/srv/src -I/srv/src/gallery
 -lGallery_model
--DMAGICKCORE_HDRI_ENABLE=0 -DMAGICKCORE_QUANTUM_DEPTH=16
+
