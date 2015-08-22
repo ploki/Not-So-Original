@@ -1,0 +1,53 @@
+<%#
+#include <Gallery/common.H>
+#include <Prototype/all.H>
+%><%
+ptr<op::Operator> op = request.getAttribute("operator");
+String sccast_value_id = "sccast_value_"+itostring(op->getId());
+%>
+Subtract a color cast
+<hr/>
+Temperature = <input type="text" name="temperature" value="<%=op->mod("temperature")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="temperature";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+Green = <input type="text" name="tint" value="<%=op->mod("tint")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="tint";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>
+Value =<select id="<%=sccast_value_id%>" name="value" onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                update="stack";
+                                with["operator"]=itostring(op->getId());
+                                with["action"]="silent_mod";
+                                with["name"]="value";
+                                withTail="'&value='+this.value";
+                                evalScripts=true;
+                                %>"/>
+<%
+	{
+	const char *dec[] =  { "", ".0833", ".1667", ".25",  ".3333", ".4167", ".5",   ".5833", ".6667", ".75", ".8333", ".9167" };
+	const char *frac[] = { "", "+1/12", "+1/6" , "+1/4", "+1/3",  "+5/12", "+1/2", "+7/12", "+2/3", "+3/4", "+5/6", "+11/12" };
+
+	for ( int i = 0 ; i <= 16 ; ++i )
+	    for ( unsigned int j = 0 ; j < sizeof(dec)/sizeof(*dec) ; ++j ) {
+	    %><option value="<%= i %><%= dec[j] %>" <%= (op->mod("value")==itostring(i)+dec[j] ? "selected=\"selected\"":"" )%>><%=i%><%=frac[j]%></option><%
+
+	    //stop at 16 + 0/6
+	    if ( 16 == i )
+	       break;
+	    }
+	}
+%>
+        </select> IL
+<input type="button" value="-" onclick="decr_selection('<%=sccast_value_id%>'); return false;"/>
+<input type="button" value="+" onclick="incr_selection('<%=sccast_value_id%>'); return false;"/>

@@ -152,6 +152,53 @@ static inline void unLabize(Image &image, Image &labImage);
 
 	}
 
+  template<typename t> t clamp(t v,t min, t max) {
+    if ( v < min )
+      return min;
+    else if ( v > max )
+      return max;
+    else
+      return v;
+  }
+  static void Temperature_to_RGB(double T, double RGB[3]) {
+    //thanks to ufraw_routines.c from ufraw-0.11
+    // and http://www.brucelindbloom.com/index.html?Eqn_T_to_xy.html
+
+      const double XYZ_to_RGB[3][3] = {
+	{ 3.24071,  -0.969258,  0.0556352 },
+	{-1.53726,  1.87599,    -0.203996 },
+	{-0.498571, 0.0415557,  1.05707 } };
+
+      int c;
+      double xD, yD, X, Y, Z, max;
+      // Fit for CIE Daylight illuminant
+      if (T<= 4000) {
+	xD = 0.27475e9/(T*T*T) - 0.98598e6/(T*T) + 1.17444e3/T + 0.145986;
+      } else if (T<= 7000) {
+	xD = -4.6070e9/(T*T*T) + 2.9678e6/(T*T) + 0.09911e3/T + 0.244063;
+      } else {
+	xD = -2.0064e9/(T*T*T) + 1.9018e6/(T*T) + 0.24748e3/T + 0.237040;
+      }
+      yD = -3*xD*xD + 2.87*xD - 0.275;
+
+      // Fit for Blackbody using CIE standard observer function at 2 degrees
+      //xD = -1.8596e9/(T*T*T) + 1.37686e6/(T*T) + 0.360496e3/T + 0.232632;
+      //yD = -2.6046*xD*xD + 2.6106*xD - 0.239156;
+
+      // Fit for Blackbody using CIE standard observer function at 10 degrees
+      //xD = -1.98883e9/(T*T*T) + 1.45155e6/(T*T) + 0.364774e3/T + 0.231136;
+      //yD = -2.35563*xD*xD + 2.39688*xD - 0.196035;
+
+      X = xD/yD;
+      Y = 1;
+      Z = (1-xD-yD)/yD;
+      max = 0;
+      for (c=0; c<3; c++) {
+	RGB[c] = X*XYZ_to_RGB[0][c] + Y*XYZ_to_RGB[1][c] + Z*XYZ_to_RGB[2][c];
+	if (RGB[c]>max) max = RGB[c];
+      }
+      for (c=0; c<3; c++) RGB[c] = RGB[c]/max;
+  }
 
   static inline Image removeHotPixels(Image& input, double delta=0.5L, bool aggressive=false, bool naive=false) {
                         Profile prof("removeHotPixels");
@@ -282,15 +329,6 @@ static inline void unLabize(Image &image, Image &labImage);
 
 			return image;
 	}
-
-        template<typename t> t clamp(t v,t min, t max) {
-                if ( v < min )
-                        return min;
-                else if ( v > max )
-                        return max;
-                else
-                        return v;
-        }
 
 
     DECLARE_EXCEPTION(OperatorException,raii::Exception);
@@ -742,44 +780,6 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
               serial=0;
         }
 
-        void Temperature_to_RGB(double T, double RGB[3]) {
-
-
-                const double XYZ_to_RGB[3][3] = {
-                                { 3.24071,  -0.969258,  0.0556352 },
-                                {-1.53726,  1.87599,    -0.203996 },
-                                {-0.498571, 0.0415557,  1.05707 } };
-
-                int c;
-                double xD, yD, X, Y, Z, max;
-                // Fit for CIE Daylight illuminant
-                if (T<= 4000) {
-                        xD = 0.27475e9/(T*T*T) - 0.98598e6/(T*T) + 1.17444e3/T + 0.145986;
-                } else if (T<= 7000) {
-                        xD = -4.6070e9/(T*T*T) + 2.9678e6/(T*T) + 0.09911e3/T + 0.244063;
-                } else {
-                        xD = -2.0064e9/(T*T*T) + 1.9018e6/(T*T) + 0.24748e3/T + 0.237040;
-                }
-                yD = -3*xD*xD + 2.87*xD - 0.275;
-
-                // Fit for Blackbody using CIE standard observer function at 2 degrees
-                //xD = -1.8596e9/(T*T*T) + 1.37686e6/(T*T) + 0.360496e3/T + 0.232632;
-                //yD = -2.6046*xD*xD + 2.6106*xD - 0.239156;
-
-                // Fit for Blackbody using CIE standard observer function at 10 degrees
-                //xD = -1.98883e9/(T*T*T) + 1.45155e6/(T*T) + 0.364774e3/T + 0.231136;
-                //yD = -2.35563*xD*xD + 2.39688*xD - 0.196035;
-
-                X = xD/yD;
-                Y = 1;
-                Z = (1-xD-yD)/yD;
-                max = 0;
-                for (c=0; c<3; c++) {
-                        RGB[c] = X*XYZ_to_RGB[0][c] + Y*XYZ_to_RGB[1][c] + Z*XYZ_to_RGB[2][c];
-                        if (RGB[c]>max) max = RGB[c];
-                }
-                for (c=0; c<3; c++) RGB[c] = RGB[c]/max;
-        }
       String getTmpFile(const String& filename) {
 	prepareTmpDir(mod("root"),mod("tmp"),filename);
 	return mod("tmp") + "/processed" + mod("root") + filename + ".ppm";
@@ -2874,14 +2874,6 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/QuantumRange)/ln(0.5)
                 mod("bluemul","1");
                 serial=0;
         }
-        template<typename t> t clamp(t v,t min, t max) {
-                if ( v < min )
-                        return min;
-                else if ( v > max )
-                        return max;
-                else
-                        return v;
-        }
 
 	void doColorFilter(Image& image, double rm, double gm, double bm) {
 		int h = image.rows(),
@@ -2923,55 +2915,7 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/QuantumRange)/ln(0.5)
                 serial=0;
         }
 
-        //thanks to ufraw_routines.c from ufraw-0.11
-
-        void Temperature_to_RGB(double T, double RGB[3]) {
-
-
-                const double XYZ_to_RGB[3][3] = {
-                                { 3.24071,  -0.969258,  0.0556352 },
-                                {-1.53726,  1.87599,    -0.203996 },
-                                {-0.498571, 0.0415557,  1.05707 } };
-
-                int c;
-                double xD, yD, X, Y, Z, max;
-                // Fit for CIE Daylight illuminant
-                if (T<= 4000) {
-                        xD = 0.27475e9/(T*T*T) - 0.98598e6/(T*T) + 1.17444e3/T + 0.145986;
-                } else if (T<= 7000) {
-                        xD = -4.6070e9/(T*T*T) + 2.9678e6/(T*T) + 0.09911e3/T + 0.244063;
-                } else {
-                        xD = -2.0064e9/(T*T*T) + 1.9018e6/(T*T) + 0.24748e3/T + 0.237040;
-                }
-                yD = -3*xD*xD + 2.87*xD - 0.275;
-
-                // Fit for Blackbody using CIE standard observer function at 2 degrees
-                //xD = -1.8596e9/(T*T*T) + 1.37686e6/(T*T) + 0.360496e3/T + 0.232632;
-                //yD = -2.6046*xD*xD + 2.6106*xD - 0.239156;
-
-                // Fit for Blackbody using CIE standard observer function at 10 degrees
-                //xD = -1.98883e9/(T*T*T) + 1.45155e6/(T*T) + 0.364774e3/T + 0.231136;
-                //yD = -2.35563*xD*xD + 2.39688*xD - 0.196035;
-
-                X = xD/yD;
-                Y = 1;
-                Z = (1-xD-yD)/yD;
-                max = 0;
-                for (c=0; c<3; c++) {
-                        RGB[c] = X*XYZ_to_RGB[0][c] + Y*XYZ_to_RGB[1][c] + Z*XYZ_to_RGB[2][c];
-                        if (RGB[c]>max) max = RGB[c];
-                }
-                for (c=0; c<3; c++) RGB[c] = RGB[c]/max;
-        }
-        template<typename t> t clamp(t v,t min, t max) {
-                if ( v < min )
-                        return min;
-                else if ( v > max )
-                        return max;
-                else
-                        return v;
-        }
-        void doJob() {
+       void doJob() {
             Profile prof("WhiteBalance");
 
                 double temperature = clamp<double>(mod("temperature").tof(),2000,12000);
@@ -3562,6 +3506,88 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/QuantumRange)/ln(0.5)
         }
     };
 
+    class SubtractColorCast : public Operator {
+        public:
+        SubtractColorCast(int i, ptr<Operator> lop) : Operator("subtractcolorcast",i,lop) {
+                mod("temperature","6500");
+                mod("tint","1.0");
+		mod("value","8");
+                serial=0;
+        }
+        void doJob() {
+	  int w = image.columns();
+	  int h = image.rows();
+	  Profile prof("SubtractColorCast");
+	  double value = mod("value").tof();
+	  double tint = 1./mod("tint").tof();
+	  double temperature = clamp<double>(mod("temperature").tof(),2000,12000);
+	  mod("temperature",ftostring(temperature));
+	  
+	  double RGB[3];
+	  Temperature_to_RGB(temperature,RGB);
+	  RGB[1]*=tint;
+	  double div=RGB[0];
+	  if (div < RGB[1] ) div=RGB[1];
+	  if (div < RGB[2] ) div=RGB[2];
+	  RGB[0]/=div;
+	  RGB[1]/=div;
+	  RGB[2]/=div;
+	  value = pow(2., 16.-value);
+	  RGB[0]*=value;
+	  RGB[1]*=value;
+	  RGB[2]*=value;
+	  image.modifyImage();
+	  Pixels pixel_cache(image);
+	  
+#pragma omp parallel for
+	  for (int y = 0 ; y < h ; ++y ) {
+	    PixelPacket *pixels = pixel_cache.get(0,y,w,1);
+	    if ( !pixels ) continue;
+	    for (int x = 0 ; x < w ; ++x ) {
+	      pixels[x].red=clamp<double>(pixels[x].red-RGB[0],0,QuantumRange);
+	      pixels[x].green=clamp<double>(pixels[x].green-RGB[1],0,QuantumRange);
+	      pixels[x].blue=clamp<double>(pixels[x].blue-RGB[2],0,QuantumRange);
+	    }
+	  }
+#pragma omp barrier
+	  pixel_cache.sync();
+	}
+    };
+  
+    class SubtractGradient : public Operator {
+        public:
+        SubtractGradient(int i, ptr<Operator> lop) : Operator("subtractgradient",i,lop) {
+                mod("radius","15");
+		mod("percent", "90");
+                serial=0;
+        }
+        void doJob() {
+	  int w = image.columns();
+	  int h = image.rows();
+	  Profile prof("SubtractGradient");
+	  double radius = double(w) * mod("radius").tof() / 100. ;
+	  double percent = mod("percent").tof() / 100.;
+	  Image copy(image);
+	  copy.blur(radius, radius);
+	  image.modifyImage();
+	  Pixels blur_cache(copy);
+	  Pixels pixel_cache(image);
+#pragma omp parallel for
+	  for ( int y = 0 ; y < h ; ++y) {
+	    PixelPacket *blur_pixels = blur_cache.get(0, y, w, 1);
+	    PixelPacket *pixels = pixel_cache.get(0, y, w, 1);
+	    for ( int x = 0 ; x < w ; ++x ) {
+	      pixels[x].red = clamp<int>(pixels[x].red - blur_pixels[x].red * percent, 0, QuantumRange);
+	      pixels[x].green = clamp<int>(pixels[x].green - blur_pixels[x].green * percent, 0, QuantumRange);
+	      pixels[x].blue = clamp<int>(pixels[x].blue - blur_pixels[x].blue * percent, 0, QuantumRange);
+	    }
+	  }
+#pragma omp barrier
+	  pixel_cache.sync();
+	  blur_cache.sync();
+        }
+    };
+
 }
 
 class Process : public Object {
@@ -3733,6 +3759,12 @@ class Process : public Object {
         }
         else if ( opstr == "oilpaint" ) {
                 oper = new op::OilPaint(opid,lastOp);
+        }
+        else if ( opstr == "subtractgradient" ) {
+                oper = new op::SubtractGradient(opid,lastOp);
+        }
+        else if ( opstr == "subtractcolorcast" ) {
+                oper = new op::SubtractColorCast(opid,lastOp);
         }
 
 
