@@ -49,7 +49,8 @@ Effects :
         <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="implode"; evalScripts=true;%>">MPLOD</a> |
         <a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="oilpaint"; evalScripts=true;%>">OIL</a> |
 	<a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="subtractgradient"; evalScripts=true;%>">sGRAD</a> |
-	<a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="subtractcolorcast"; evalScripts=true;%>">sCCAST</a>
+	<a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="subtractcolorcast"; evalScripts=true;%>">sCCAST</a> |
+	<a href="#" onclick="<%:prototype::Ajax url="/edit.C"+request.getPathInfo(); update="stack"; with["action"]="add_operator"; with["operator"]="relum"; evalScripts=true;%>">reLUM</a>
 
 
 <br/>

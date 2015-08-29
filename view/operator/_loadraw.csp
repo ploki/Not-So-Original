@@ -329,3 +329,12 @@ Black Point = <input type="text" name="blackpoint" value="<%=op->mod("blackpoint
                                   withTail="'&value='+this.value";
                                   evalScripts=true;%>" />
 <br/>
+White Point = <input type="text" name="whitepoint" value="<%=op->mod("whitepoint")%>"
+               onchange="<%:prototype::Ajax url="/edit.C"+request.getPathInfo();
+                                  update="stack";
+                                  with["operator"]=itostring(op->getId());
+                                  with["action"]="silent_mod";
+                                  with["name"]="whitepoint";
+                                  withTail="'&value='+this.value";
+                                  evalScripts=true;%>" />
+<br/>

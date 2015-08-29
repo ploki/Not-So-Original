@@ -758,6 +758,7 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
               mod("whitebalance","2");
               mod("brightness","1.0");//(1.0),
               mod("blackpoint","");//(0),
+              mod("whitepoint","");
               mod("highlights","0");//(0),
               mod("quality","1");//(0),
               mod("halfSize","0");//(0),
@@ -852,6 +853,8 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	ss << "-b "<<mod("brightness").tof()<<" ";
 	if ( ! mod("blackpoint").empty() )
 	  ss << "-k "<<mod("blackpoint").toi()<<" ";
+	if ( ! mod("whitepoint").empty() )
+	  ss << "-S "<<mod("whitepoint").toi()<<" ";
 	ss << "-q "<<mod("quality").toi()<<" ";
 
 	switch ( mod("halfSize").toi() ) {
@@ -2968,6 +2971,18 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/QuantumRange)/ln(0.5)
 		}
 	#pragma omp barrier
 		pixel_cache.sync();
+
+	  {
+	    curve.modifyImage();
+	    Pixels curve_cache(curve);
+	    PixelPacket *pixels = curve_cache.get(0,0,65536,1);
+	    for (int x = 0 ; x < 65536 ; ++x ) {
+	      pixels[x].red=clamp<double>(pixels[x].red*RGB[0],0,QuantumRange);
+	      pixels[x].green=clamp<double>(pixels[x].green*RGB[1],0,QuantumRange);
+	      pixels[x].blue=clamp<double>(pixels[x].blue*RGB[2],0,QuantumRange);
+	    }
+	    curve_cache.sync();
+	  }
         }
     };
 
@@ -3346,12 +3361,21 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/QuantumRange)/ln(0.5)
                 
 		iGamma(image,imageInfo.gamma,imageInfo.non_linear_range,true); // g -> linear
 		iGamma(curve,imageInfo.gamma,imageInfo.non_linear_range,true); // g -> linear
+		{
+		  double mul = value/100.;
+		  curve.modifyImage();
+		  Pixels curve_cache(curve);
+		  PixelPacket *pixels = curve_cache.get(0,0,65536,1);
+		  for (int x = 0 ; x < 65536 ; ++x ) {
+		    pixels[x].red=clamp<double>(pixels[x].red*mul,0,QuantumRange);
+		    pixels[x].green=clamp<double>(pixels[x].green*mul,0,QuantumRange);
+		    pixels[x].blue=clamp<double>(pixels[x].blue*mul,0,QuantumRange);
+		  }
+		  curve_cache.sync();
+		}
+
                 if (!lab) {
                     image.modulate(value,
-                                   saturation,
-                                   (hue/1.8)+100.
-                                   );
-                    curve.modulate(value,
                                    saturation,
                                    (hue/1.8)+100.
                                    );
@@ -3359,8 +3383,6 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/QuantumRange)/ln(0.5)
                 else {
 
 			labModulate(image);
-			labModulate(curve);
-
                 }
 		iGamma(image,imageInfo.gamma,imageInfo.non_linear_range,false); // linear -> g
 		iGamma(curve,imageInfo.gamma,imageInfo.non_linear_range,false); // linear -> g
@@ -3506,6 +3528,92 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/QuantumRange)/ln(0.5)
         }
     };
 
+  class RemapLuminance : public Operator {
+  public:
+    RemapLuminance(int i, ptr<Operator> lop) : Operator("relum", i, lop) {
+      mod("type", "0");
+      mod("red", "0");
+      mod("green", "100");
+      mod("blue", "0");
+      mod("radius", "0.5");
+      mod("sigma", "0.5");
+      serial=0;
+    }
+    void doJob() {
+      Profile prof("RemapLuminance");
+      double red = mod("red").tof()/100.;
+      double green = mod("green").tof()/100.;
+      double blue = mod("blue").tof()/100.;
+      int type = mod("type").toi();
+      double radius = mod("radius").tof();
+      double sigma = mod("sigma").tof();
+      int w = image.columns();
+      int h = image.rows();
+      image.modifyImage();
+      Image copy(image);
+      copy.modifyImage();
+      {
+	Pixels copy_cache(copy);
+#pragma omp parallel for
+	for ( int y = 0 ; y < h ; ++y ) {
+	  PixelPacket *copy_pixels = copy_cache.get(0, y, w, 1);
+	  for ( int x = 0 ; x < w ; ++x ) {
+	    quantum_t lum = clamp<quantum_t>(
+	      red * copy_pixels[x].red +
+	      green * copy_pixels[x].green +
+	      blue * copy_pixels[x].blue,
+	      0, QuantumRange);
+	    copy_pixels[x].red = copy_pixels[x].green = copy_pixels[x].blue = lum;
+	  }
+	}
+#pragma omp barrier
+	copy_cache.sync();
+      }
+      if ( 0. != radius || 0. != sigma )
+	copy.blur(radius, sigma);
+
+      Image labCopy(copy);
+      iGamma(copy,imageInfo.gamma,imageInfo.non_linear_range,true);
+      Labize(copy,labCopy);
+      iGamma(labCopy,LAB_G,LAB_N,true);
+
+      Image labImage(image);
+      iGamma(image,imageInfo.gamma,imageInfo.non_linear_range,true);
+      Labize(image,labImage);
+      iGamma(labImage,LAB_G,LAB_N,true);
+
+      Pixels copy_cache(labCopy);
+      Pixels image_cache(labImage);
+#pragma omp parallel for
+	for ( int y = 0 ; y < h ; ++y ) {
+	  PixelPacket *copy_pixels = copy_cache.get(0, y, w, 1);
+	  PixelPacket *image_pixels = image_cache.get(0, y, w, 1);
+	  for ( int x = 0 ; x < w ; ++x ) {
+	    switch(type) {
+	    default: case 0://replace
+	      image_pixels[x].red = image_pixels[x].green = image_pixels[x].blue =
+		copy_pixels[x].red;
+	      break; case 1://arithmetic
+	      image_pixels[x].red = image_pixels[x].green = image_pixels[x].blue =
+		clamp<quantum_t>(round(double( copy_pixels[x].red + image_pixels[x].red ) / 2.),
+	      0, QuantumRange);;
+	      break; case 2://geometric
+	      image_pixels[x].red = image_pixels[x].green = image_pixels[x].blue =
+		clamp<quantum_t>(round(sqrt( double(copy_pixels[x].red) * double(image_pixels[x].red) )),
+	      0, QuantumRange);;
+	    }
+	  }
+	}
+#pragma omp barrier
+	copy_cache.sync();
+	image_cache.sync();
+      
+      iGamma(labImage,LAB_G,LAB_N,false);
+      unLabize(image, labImage);
+      iGamma(image,imageInfo.gamma,imageInfo.non_linear_range,false);
+    };
+  };
+  
     class SubtractColorCast : public Operator {
         public:
         SubtractColorCast(int i, ptr<Operator> lop) : Operator("subtractcolorcast",i,lop) {
@@ -3551,6 +3659,19 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/QuantumRange)/ln(0.5)
 	  }
 #pragma omp barrier
 	  pixel_cache.sync();
+
+	  {
+	    curve.modifyImage();
+	    Pixels curve_cache(curve);
+	    PixelPacket *pixels = curve_cache.get(0,0,65536,1);
+	    for (int x = 0 ; x < 65536 ; ++x ) {
+	      pixels[x].red=clamp<double>(pixels[x].red-RGB[0],0,QuantumRange);
+	      pixels[x].green=clamp<double>(pixels[x].green-RGB[1],0,QuantumRange);
+	      pixels[x].blue=clamp<double>(pixels[x].blue-RGB[2],0,QuantumRange);
+	    }
+	    curve_cache.sync();
+	  }
+
 	}
     };
   
@@ -3588,7 +3709,7 @@ gamma = ln(((ln(i/bias)/ln(2))*mul)/QuantumRange)/ln(0.5)
         }
     };
 
-}
+  }
 
 class Process : public Object {
 
@@ -3765,6 +3886,9 @@ class Process : public Object {
         }
         else if ( opstr == "subtractcolorcast" ) {
                 oper = new op::SubtractColorCast(opid,lastOp);
+        }
+        else if ( opstr == "relum" ) {
+                oper = new op::RemapLuminance(opid,lastOp);
         }
 
 
