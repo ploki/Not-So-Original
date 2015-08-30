@@ -751,8 +751,11 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
     };
 
     class LoadRaw : public GenericLoad {
+      int last_halfSize;
+      int last_drizzle;
+      int last_divisor;
         public:
-        LoadRaw(const String& root, const String& tmp, const String& fn) : GenericLoad(true,root,tmp,fn) {
+      LoadRaw(const String& root, const String& tmp, const String& fn) : GenericLoad(true,root,tmp,fn), last_halfSize(-1), last_drizzle(-1), last_divisor(-1) {
               //mod("autWB","0");//(false),
               //mod("cameraWB","1");//(true),
               mod("whitebalance","2");
@@ -778,6 +781,18 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 		mod("hp_naive","0");
 
 		mod("discrete","0");
+
+		if ( fn.matches("\\.[sS][tT][kK]$") )
+		  {
+		    mod("stack", "1");
+		    mod("drizzle", "1");
+		    mod("divisor", "1");
+		  }
+		else
+		  {
+		    mod("stack", "0");
+		  }
+		
               serial=0;
         }
 
@@ -970,10 +985,48 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	if ( upToDate )
 	  return;
 
+	int drizzle=mod("drizzle").toi();
+	int halfSize=mod("halfSize").toi();
+	int divisor=mod("divisor").toi();
+	bool recrop=false;
+	double coef=0.;
+	if (-1 == last_drizzle)
+	  last_drizzle = drizzle;
+	if (-1 == last_halfSize)
+	  last_halfSize=halfSize;
+	if (-1 == last_divisor)
+	  last_divisor = divisor;
+
+	if ( drizzle != last_drizzle )
+	  {
+	    coef=double(drizzle)/double(last_drizzle);
+	    recrop=true;
+	    last_drizzle = drizzle;
+	  }
+	if ( halfSize != last_halfSize )
+	  {
+	    if (halfSize) coef=0.5; else coef=2;
+	    recrop=true;
+	    last_halfSize=halfSize;
+	  }
+	if ( divisor != last_divisor )
+	  {
+	    coef=double(last_divisor)/double(divisor);
+	    recrop=true;
+	    last_divisor = divisor;
+	  }
+	if (recrop)
+	  {
+	    mod("crop_x1", itostring(coef*mod("crop_x1").tof()));
+	    mod("crop_y1", itostring(coef*mod("crop_y1").tof()));
+	    mod("crop_x2", itostring(coef*mod("crop_x2").tof()));
+	    mod("crop_y2", itostring(coef*mod("crop_y2").tof()));
+	  }
+
+	int stack = mod("stack").toi();
 	String filename = mod("filename");
 
-
-	if ( filename.matches("\\.[sS][tT][kK]$") )
+	if ( stack )
 	  doStackJob(filename);
 	else
 	  doRawJob(filename);
@@ -983,6 +1036,8 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
       void doStackJob(String& filename) {
 	Logger log("stackjob"); log.error();
 	FILE *stack_desc = fopen((mod("root")+filename).c_str(), "r");
+	int drizzle = mod("drizzle").toi();
+	int divisor = mod("divisor").toi();
 	typedef unsigned int stack_t;
 	char buf[1024];
 	int n_lights = 0;
@@ -1276,7 +1331,7 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	    if ( light == NULL )
 	      {
 		log("allocating "+itostring(h*w*3*sizeof(*light))+" bytes for lights");
-		light = (stack_t*)calloc(1,h*w*3*sizeof(*light));
+		light = (stack_t*)calloc(1,h*drizzle*w*drizzle*3*sizeof(*light));
 	      }
 	    if ( light == NULL )
 	      throw OperatorException("Not enough memory");
@@ -1298,92 +1353,125 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 		ff_y=lcy;
 	      }
 
-	    {	    
-	      int cy = lcy - ff_y;
-	      int cx = lcx - ff_x;
-	      log(" ********* LIGHT : N="+itostring(n_lights)+", ALIGN : X="+itostring(cx)+", Y="+itostring(cy));
+	    {
+	      Image calibrated(Geometry(w,h), ColorRGB(0,0,0));
+	      calibrated.modifyImage();
+	      Pixels calibrated_cache(calibrated);
 	      Pixels pixel_cache(image);
-	      #pragma omp parallel for
+	      
+              #pragma omp parallel for
 	      for ( int y = 0 ; y < h ; ++y ) {
-		if ( y + cy < 0 || y + cy >= h )
-		  continue;
 		PixelPacket *pixels;
-		try {
-		  pixels = pixel_cache.get(0,y+cy,w,1);
-		}
-		catch(...) {
-		  throw OperatorException("pixel_cache.get");
-		}
+		PixelPacket *calibrated_pixels;
+		pixels = pixel_cache.get(0,y,w,1);
+		calibrated_pixels = calibrated_cache.get(0, y, w, 1);
 		for ( int x = 0 ; x < w ; ++x ) {
-		  if ( x + cx < 0 || x + cx >= w )
-		    continue;
 		  stack_t dark_red = 0;
 		  stack_t dark_green = 0;
 		  stack_t dark_blue = 0;
 		  if ( n_darks > 0 )
 		    {
-		      dark_red = dark[(y+cy)*w*3+(x+cx)*3+0];
-		      dark_green = dark[(y+cy)*w*3+(x+cx)*3+1];
-		      dark_blue = dark[(y+cy)*w*3+(x+cx)*3+2];
-		      if ( dark_red > stack_t(pixels[x+cx].red) )
-			dark_red = stack_t(pixels[x+cx].red);
-		      if ( dark_green > stack_t(pixels[x+cx].green) )
-			dark_green = stack_t(pixels[x+cx].green);
-		      if ( dark_blue > stack_t(pixels[x+cx].blue) )
-			dark_blue = stack_t(pixels[x+cx].blue);
+		      dark_red = dark[y*w*3+x*3+0];
+		      dark_green = dark[y*w*3+x*3+1];
+		      dark_blue = dark[y*w*3+x*3+2];
+		      if ( dark_red > stack_t(pixels[x].red) )
+			dark_red = stack_t(pixels[x].red);
+		      if ( dark_green > stack_t(pixels[x].green) )
+			dark_green = stack_t(pixels[x].green);
+		      if ( dark_blue > stack_t(pixels[x].blue) )
+			dark_blue = stack_t(pixels[x].blue);
 		    }
+		  stack_t cf_red   = 1;
+		  stack_t cf_green = 1;
+		  stack_t cf_blue  = 1;
 		  if ( n_flats > 0 )
 		    {
-		      stack_t cf_red   = flat[(y+cy)*w*3+(x+cx)*3+0];
-		      stack_t cf_green = flat[(y+cy)*w*3+(x+cx)*3+1];
-		      stack_t cf_blue  = flat[(y+cy)*w*3+(x+cx)*3+2];
+		      cf_red   = flat[y*w*3+x*3+0];
+		      cf_green = flat[y*w*3+x*3+1];
+		      cf_blue  = flat[y*w*3+x*3+2];
 
 		      if ( 0 == cf_red ) cf_red = 1;
 		      if ( 0 == cf_green ) cf_green = 1;
 		      if ( 0 == cf_blue ) cf_blue = 1;
-		      light[y*w*3+x*3+0]+= flat_red  *
-			(stack_t(pixels[x+cx].red) - dark_red ) /
-			cf_red;
-		      light[y*w*3+x*3+1]+= flat_green *
-			(stack_t(pixels[x+cx].green) - dark_green ) /
-			cf_green;
-		      light[y*w*3+x*3+2]+= flat_blue  *
-			(stack_t(pixels[x+cx].blue)  - dark_blue ) /
-			cf_blue;
 		    }
-		  else
-		    {
-		      light[y*w*3+x*3+0]+= (stack_t(pixels[x+cx].red)   - dark_red );
-		      light[y*w*3+x*3+1]+= (stack_t(pixels[x+cx].green) - dark_green );
-		      light[y*w*3+x*3+2]+= (stack_t(pixels[x+cx].blue)  - dark_blue );
-		    }
+		  calibrated_pixels[x].red = flat_red  *
+		    (stack_t(pixels[x].red) - dark_red ) /
+		    cf_red;
+		  calibrated_pixels[x].green = flat_green *
+		    (stack_t(pixels[x].green) - dark_green ) /
+		    cf_green;
+		  calibrated_pixels[x].blue = flat_blue  *
+		    (stack_t(pixels[x].blue)  - dark_blue ) /
+		    cf_blue;
 		}
 	      }
-	      #pragma omp barrier
+              #pragma omp barrier
 	      pixel_cache.sync();
+	      calibrated_cache.sync();
+	      if ( drizzle > 1 )
+		calibrated.resize(Geometry(w*drizzle,h*drizzle));
+	      calibrated.modifyImage();
+	      Pixels second_cache(calibrated);
+	      {
+		int cy = lcy - ff_y;
+		int cx = lcx - ff_x;
+		log(" ********* LIGHT : N="+itostring(n_lights)+", ALIGN : X="+itostring(cx)+", Y="+itostring(cy));
+	      
+                #pragma omp parallel for
+		for ( int y = 0 ; y < h*drizzle ; ++y ) {
+		  if ( y + cy*drizzle < 0 || y + cy*drizzle >= h*drizzle )
+		    continue;
+		  PixelPacket *pixels;
+		  try {
+		    pixels = second_cache.get(0, y+cy*drizzle, w*drizzle, 1);
+		  }
+		  catch (std::exception& error) {
+		    Logger log("stack");
+		    log.error("y="+itostring(y)+" cy="+itostring(cy)+" w="+itostring(w));
+		    log.error("w="+itostring(calibrated.columns())+" h="+itostring(calibrated.rows()));
+		    log.error("Magick Exception="+String(error.what()));
+		    throw ServletException("plop");
+		  }
+		  for ( int x = 0 ; x < w*drizzle ; ++x ) {
+		    if ( x + cx*drizzle < 0 || x + cx*drizzle >= w*drizzle )
+		      continue;
+		    light[y * (w*drizzle)*3 + x*3 + 0]
+		      += pixels[x+cx*drizzle].red;
+		    light[y * (w*drizzle)*3 + x*3 + 1]
+		      += pixels[x+cx*drizzle].green;
+		    light[y * (w*drizzle)*3 + x*3 + 2]
+		      += pixels[x+cx*drizzle].blue;
+		  }
+		}
+                #pragma omp barrier
+		second_cache.sync();
+	      }
 	    }
 	  }
 	fclose(stack_desc);
 	
+	image = Image(Geometry(w*drizzle,h*drizzle),ColorRGB(0,0,0));
 	Pixels pixel_cache(image);
 	#pragma omp parallel for
-	for ( int y = 0 ; y < h ; ++y ) {
-	  PixelPacket *pixels = pixel_cache.get(0,y,w,1);
-	  for ( int x = 0 ; x < w ; ++x ) {
-	    stack_t red = double(light[y*w*3+x*3+0]) / n_lights;
-	    stack_t green = double(light[y*w*3+x*3+1]) / n_lights;
-	    stack_t blue = double(light[y*w*3+x*3+2]) / n_lights;
+	for ( int y = 0 ; y < h*drizzle ; ++y ) {
+	  PixelPacket *pixels = pixel_cache.get(0,y,w*drizzle,1);
+	  for ( int x = 0 ; x < w*drizzle ; ++x ) {
+	    stack_t red = double(light[y*(w*drizzle)*3+x*3+0]) / n_lights;
+	    stack_t green = double(light[y*(w*drizzle)*3+x*3+1]) / n_lights;
+	    stack_t blue = double(light[y*(w*drizzle)*3+x*3+2]) / n_lights;
 	    pixels[x].red = clamp(red, stack_t(0), stack_t(QuantumRange));
 	    pixels[x].green = clamp(green, stack_t(0), stack_t(QuantumRange));
 	    pixels[x].blue = clamp(blue, stack_t(0), stack_t(QuantumRange));
 	  }
 	}
-	#pragma omp barrier
+        #pragma omp barrier
 	pixel_cache.sync();
 	free(flat);
 	free(dark);
 	free(light);
 	free(dflat);
+	if ( drizzle != 1 || divisor != 1 )
+	  image.scale(Geometry(w*drizzle/divisor, h*drizzle/divisor));
       }
       
 
@@ -3736,7 +3824,7 @@ class Process : public Object {
                 operators.push_back(new op::Load(root,tmp,realpath));
     }
 
-    void addOperator(const String& opstr, int opid=-1) {
+    void addOperator(const String& opstr, int opid=-1, String fn="") {
         ptr<op::Operator> lastOp = NULL;
         if ( ! operators.empty() )
                  lastOp = operators.back();
@@ -3747,10 +3835,10 @@ class Process : public Object {
                 opid = lastOperator+1;
 
         if ( opstr == "load" ) {
-                oper = new op::Load("","","");
+                oper = new op::Load("","",fn);
         }
         else if ( opstr == "loadraw" ) {
-                oper = new op::LoadRaw("","","");
+                oper = new op::LoadRaw("","",fn);
         }
         else if ( opstr == "negate" ) {
                 oper = new op::Negate(opid,lastOp);
@@ -3994,12 +4082,11 @@ class Process : public Object {
                 String value = url_decode(rs["value"]);
 
                 if ( opid != lastop ) {
-                        addOperator(opname,opid);
+		        addOperator(opname,opid, filename);
                         if ( opid == 0 ) {
                                 ptr<op::Operator> loader=getOperator(0);
                                 loader->mod("tmp",tmp);
                                 loader->mod("root",root);
-                                loader->mod("filename",filename);
                         }
                         lastop=opid;
                 }
