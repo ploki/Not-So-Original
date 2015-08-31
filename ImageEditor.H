@@ -1394,15 +1394,21 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 		      if ( 0 == cf_green ) cf_green = 1;
 		      if ( 0 == cf_blue ) cf_blue = 1;
 		    }
-		  calibrated_pixels[x].red = flat_red  *
-		    (stack_t(pixels[x].red) - dark_red ) /
-		    cf_red;
-		  calibrated_pixels[x].green = flat_green *
-		    (stack_t(pixels[x].green) - dark_green ) /
-		    cf_green;
-		  calibrated_pixels[x].blue = flat_blue  *
-		    (stack_t(pixels[x].blue)  - dark_blue ) /
-		    cf_blue;
+		  calibrated_pixels[x].red =
+		    clamp<long>(flat_red  *
+				(stack_t(pixels[x].red) - dark_red ) /
+				cf_red,
+				0, QuantumRange);
+		  calibrated_pixels[x].green =
+		    clamp<long>(flat_green *
+				(stack_t(pixels[x].green) - dark_green ) /
+				cf_green,
+				0, QuantumRange);
+		  calibrated_pixels[x].blue =
+		    clamp<long>(flat_blue  *
+				(stack_t(pixels[x].blue)  - dark_blue ) /
+				cf_blue,
+				0, QuantumRange);
 		}
 	      }
               #pragma omp barrier
