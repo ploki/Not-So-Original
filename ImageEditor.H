@@ -806,6 +806,10 @@ Camera multipliers: 1.503906 1.000000 1.648438 0.000000
 	ss << "dcraw -c ";
 
 	int wb=mod("whitebalance").toi();
+	int stack=mod("stack").toi();
+
+	if (stack)
+	  ss << "-t 0 ";
 
 	imageInfo.probeFile(mod("root")+filename);
 
